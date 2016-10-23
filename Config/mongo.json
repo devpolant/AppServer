@@ -1,0 +1,7 @@
+{
+    "user": "user"
+    "password": "rootasdf123"
+    "database": "healthproject"
+    "port": "11735"
+    "host": "ds011735.mlab.com"
+}
