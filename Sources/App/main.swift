@@ -10,7 +10,7 @@ do {
     print(error)
 }
 
-drop.addConfigurable(middleware: LoginMiddleware(), name: "login")
+drop.addConfigurable(middleware: LoginMiddleware(), name: "auth")
 
 let usersController = UsersController()
 drop.get("login", handler: usersController.userLogin)
@@ -22,4 +22,5 @@ drop.get { req in
         ])
 }
 debugPrint("Run droplet")
+
 drop.run()
