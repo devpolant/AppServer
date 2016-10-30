@@ -49,7 +49,7 @@ extension User: Auth.User {
     
     static func authenticate(credentials: Credentials) throws -> Auth.User {
         
-        let user: User?
+        var user: User?
         
         switch credentials {
             
