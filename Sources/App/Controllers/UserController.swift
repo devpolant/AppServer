@@ -90,7 +90,20 @@ class UserController {
                     
                     return try JSON(node: node)
                 }
-                return try JSON(node: ["error": "invalid credentials"])
+                throw Abort.badRequest
+            }
+            
+            users.post("logout") { req in
+                
+                guard let token = req.auth.header?.bearer else {
+                    throw Abort.notFound
+                }
+                
+                if let user = try User.query().filter("access_token", token.string).first() {
+                    user.token = ""
+                    throw Abort.custom(status: .accepted, message: "Logout success")
+                }
+                throw Abort.badRequest
             }
             
             let protect = ProtectMiddleware(error:
