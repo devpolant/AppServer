@@ -16,6 +16,8 @@ final class User: Model {
     var id: Node?
     var name: String
     
+    var exists = false
+    
     init(name: String) {
         self.name = name
     }
