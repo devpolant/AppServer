@@ -19,43 +19,13 @@ do {
 drop.preparations = [User.self]
 
 
-//MARK: Middleware
-
-let auth = AuthMiddleware(user: User.self) { value in
-    return Cookie(
-        name: "vapor-auth",
-        value: value,
-        expires: Date().addingTimeInterval(60 * 60 * 5), // 5 hours
-        secure: true,
-        httpOnly: true
-    )
-}
-
-drop.addConfigurable(middleware: auth, name: "auth")
-
-
 //MARK: Controllers
 
-let usersController = UsersController()
-drop.get("login", handler: usersController.userLogin)
+let userController = UserController(droplet: drop)
+userController.setup()
 
 
 //MARK: Routing
-
-drop.get("hello") { request in
-    guard let name = request.data["name"]?.string else {
-        throw Abort.badRequest
-    }
-    var user = User(name: name)
-    do {
-        try user.save()
-        return "Hello, \(name)! you are saved"
-    } catch {
-        print(error)
-        throw Abort.custom(status: .badRequest, message: "Your credentials was not saved")
-    }
-}
-
 
 drop.get { req in
     return try drop.view.make("welcome", [
@@ -63,7 +33,7 @@ drop.get { req in
         ])
 }
 
-debugPrint("Run droplet")
+debugPrint("Run Droplet")
 
 drop.run()
 
