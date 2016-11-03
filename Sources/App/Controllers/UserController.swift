@@ -12,6 +12,7 @@ import Vapor
 import Auth
 import Cookies
 import BCrypt
+import HTTP
 
 class UserController {
     
@@ -53,71 +54,80 @@ class UserController {
             return
         }
         
-        drop.group("users") { users in
-            
-            users.post("register") { req in
-                
-                guard let name = req.data["name"]?.string,
-                    let login = req.data["login"]?.string,
-                    let password = req.data["password"]?.string else {
-                        throw Abort.badRequest
-                }
-                
-                if let _ = try User.query().filter("login", contains: login).first() {
-                    throw Abort.custom(status: .conflict, message: "User already exist")
-                }
-                
-                var user = User(name: name, login: login, password: password)
-                user.token = self.token(for: user)
-                
-                try user.save()
-                return try user.makeJSON()
-            }
-            
-            users.post("login") { req in
-                
-                guard let login = req.data["login"]?.string,
-                    let password = req.data["password"]?.string else {
-                        throw Abort.badRequest
-                }
-                
-                let credentials = APIKey(id: login, secret: password)
-                try req.auth.login(credentials)
-                
-                guard let userId = try req.auth.user().id, let user = try User.find(userId) else {
-                    throw Abort.custom(status: .notFound, message: "User not found")
-                }
-                
-                var newUser = User(user: user)
-                newUser.token = self.token(for: user)
-                
-                try user.delete()
-                try newUser.save()
-                
-                return try JSON(node: ["message": "Logged in",
-                                       "access_token" : newUser.token])
-            }
-            
-            users.post("logout") { req in
-                
-                guard let token = req.auth.header?.bearer else {
-                    throw Abort.notFound
-                }
-                
-                if let user = try User.query().filter("access_token", token.string).first() {
-                    
-                    var logoutedUser = User(user: user)
-                    
-                    try logoutedUser.save()
-                    try req.auth.logout()
-                    
-                    return try JSON(node: ["errors": false,
-                                           "message": "Logout succeded"])
-                }
-                throw Abort.badRequest
-            }
-        }
+        let userGroup = drop.grouped("users")
+        
+        userGroup.post("register", handler: register)
+        userGroup.post("login", handler: login)
+        userGroup.post("logout", handler: logout)
     }
+    
+    
+    //MARK: - Auth
+    
+    func register(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let name = req.data["name"]?.string,
+            let login = req.data["login"]?.string,
+            let password = req.data["password"]?.string else {
+                throw Abort.badRequest
+        }
+        
+        if let _ = try User.query().filter("login", contains: login).first() {
+            throw Abort.custom(status: .conflict, message: "User already exist")
+        }
+        
+        var user = User(name: name, login: login, password: password)
+        user.token = self.token(for: user)
+        
+        try user.save()
+        return try user.makeJSON()
+    }
+    
+    func login(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let login = req.data["login"]?.string,
+            let password = req.data["password"]?.string else {
+                throw Abort.badRequest
+        }
+        
+        let credentials = APIKey(id: login, secret: password)
+        try req.auth.login(credentials)
+        
+        guard let userId = try req.auth.user().id, let user = try User.find(userId) else {
+            throw Abort.custom(status: .notFound, message: "User not found")
+        }
+        
+        var newUser = User(user: user)
+        newUser.token = self.token(for: user)
+        
+        try user.delete()
+        try newUser.save()
+        
+        return try JSON(node: ["message": "Logged in",
+                               "access_token" : newUser.token])
+    }
+    
+    func logout(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let token = req.auth.header?.bearer else {
+            throw Abort.notFound
+        }
+        
+        if let user = try User.query().filter("access_token", token.string).first() {
+            
+            var logoutedUser = User(user: user)
+            
+            try logoutedUser.save()
+            try req.auth.logout()
+            
+            return try JSON(node: ["error": false,
+                                   "message": "Logout succeded"])
+        }
+        throw Abort.badRequest
+    }
+    
+    
+    //MARK: - Token
     
     func token(for user: User) -> String {
         return encode(["hash":user.hash], algorithm: .hs256("secret".data(using: .utf8)!))
