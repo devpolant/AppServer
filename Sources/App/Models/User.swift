@@ -28,6 +28,12 @@ final class User: Model {
         self.hash = BCrypt.hash(password: password)
     }
     
+    init(user: User) {
+        self.name = user.name
+        self.login = user.login
+        self.hash = user.hash
+    }
+    
     //MARK: NodeConvertible
     
     init(node: Node, in context: Context) throws {
@@ -76,14 +82,14 @@ extension User: Auth.User {
         case let accessToken as AccessToken:
             user = try User.query().filter("access_token", accessToken.string).first()
         case let apiKey as APIKey:
-            print("get apikey: ", apiKey)
+            debugPrint("get apikey: ", apiKey)
             do {
                 if let tempUser = try User.query().filter("login", apiKey.id).first() {
-                    print("user found, checking password")
-                    print(apiKey.secret)
-                    print(tempUser.hash)
+                    debugPrint("user found, checking password")
+                    debugPrint(apiKey.secret)
+                    debugPrint(tempUser.hash)
                     if try BCrypt.verify(password: apiKey.secret, matchesHash: tempUser.hash) {
-                        print("password matched")
+                        debugPrint("password matched")
                         user = tempUser
                     }
                 }

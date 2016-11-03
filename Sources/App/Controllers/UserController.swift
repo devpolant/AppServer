@@ -62,6 +62,11 @@ class UserController {
                     let password = req.data["password"]?.string else {
                         throw Abort.badRequest
                 }
+                
+                if let _ = try User.query().filter("login", contains: login).first() {
+                    throw Abort.custom(status: .conflict, message: "User already exist")
+                }
+                
                 var user = User(name: name, login: login, password: password)
                 user.token = self.token(for: user)
                 
@@ -79,18 +84,18 @@ class UserController {
                 let credentials = APIKey(id: login, secret: password)
                 try req.auth.login(credentials)
                 
-                if let user = try req.auth.user() as? User {
-                    
-                    print("user did logged in")
-                    print(user.token)
-                    
-                    user.token = self.token(for: user)
-                    let node = ["message": "Logged in",
-                                "access_token" : user.token]
-                    
-                    return try JSON(node: node)
+                guard let userId = try req.auth.user().id, let user = try User.find(userId) else {
+                    throw Abort.custom(status: .notFound, message: "User not found")
                 }
-                throw Abort.badRequest
+                
+                var newUser = User(user: user)
+                newUser.token = self.token(for: user)
+                
+                try user.delete()
+                try newUser.save()
+                
+                return try JSON(node: ["message": "Logged in",
+                                       "access_token" : newUser.token])
             }
             
             users.post("logout") { req in
@@ -100,22 +105,17 @@ class UserController {
                 }
                 
                 if let user = try User.query().filter("access_token", token.string).first() {
-                    user.token = ""
-                    throw Abort.custom(status: .accepted, message: "Logout success")
+                    
+                    var logoutedUser = User(user: user)
+                    
+                    try logoutedUser.save()
+                    try req.auth.logout()
+                    
+                    return try JSON(node: ["errors": false,
+                                           "message": "Logout succeded"])
                 }
                 throw Abort.badRequest
             }
-            
-            let protect = ProtectMiddleware(error:
-                Abort.custom(status: .forbidden, message: "Not authorized.")
-            )
-            users.group(protect) { secure in
-            }
-            //            users.group(protect) { secure in
-            //                secure.get("secure") { req in
-            //                    return try req.user()
-            //                }
-            //            }
         }
     }
     
