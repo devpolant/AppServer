@@ -103,8 +103,12 @@ class UserController {
         var newUser = User(user: user)
         newUser.token = self.token(for: user)
         
-        try user.delete()
-        try newUser.save()
+        do {
+            try user.delete()
+            try newUser.save()
+        } catch {
+            print(error)
+        }
         
         return try JSON(node: ["message": "Logged in",
                                "access_token" : newUser.token])
