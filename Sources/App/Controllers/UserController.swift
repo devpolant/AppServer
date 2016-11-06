@@ -55,10 +55,13 @@ class UserController {
         }
         
         let userGroup = drop.grouped("users")
-        
         userGroup.post("register", handler: register)
         userGroup.post("login", handler: login)
-        userGroup.post("logout", handler: logout)
+        
+        
+        let protectedGroup = userGroup.grouped(AuthenticationMiddleware())
+        protectedGroup.post("logout", handler: logout)
+        protectedGroup.post("edit", handler: edit)
     }
     
     
@@ -124,6 +127,44 @@ class UserController {
                                    "message": "Logout succeded"])
         }
         throw Abort.badRequest
+    }
+    
+    
+    //MARK: - Edit
+    
+    func edit(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let token = req.auth.header?.bearer else {
+            throw Abort.badRequest
+        }
+        
+        try req.auth.login(token)
+        if let user = try req.auth.user() as? User {
+            
+            var newUser = User(user: user)
+            var isChanged = false
+            
+            if let newName = req.data["name"]?.string {
+                newUser.name = newName
+                isChanged = true
+            }
+            
+            if let newLogin = req.data["login"]?.string {
+                if (try User.query().filter("login", newLogin).first()) != nil {
+                    throw Abort.custom(status: .badRequest, message: "Such login already exist")
+                }
+                newUser.login = newLogin
+                isChanged = true
+            }
+            if isChanged {
+                newUser.token = user.token
+                try user.delete()
+                try newUser.save()
+                return try newUser.makeJSON()
+            }
+            throw Abort.custom(status: .badRequest, message: "No parameters")
+        }
+        throw Abort.custom(status: .badRequest, message: "Invalid credentials")
     }
     
     
