@@ -112,16 +112,24 @@ class UserController {
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let token = req.auth.header?.bearer else {
-            throw Abort.notFound
-        }
-        
-        if let user = try User.query().filter("access_token", token.string).first() {
+        if var user = try req.auth.user() as? User {
+            
+            do {
+                user.token = ""
+                try user.save()
+            } catch {
+                print(error)
+            }
             
             var logoutedUser = User(user: user)
             
-            try logoutedUser.save()
-            try req.auth.logout()
+            do {
+                try user.delete()
+                try logoutedUser.save()
+                try req.auth.logout()
+            } catch {
+                print(error)
+            }
             
             return try JSON(node: ["error": false,
                                    "message": "Logout succeded"])
@@ -134,11 +142,6 @@ class UserController {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let token = req.auth.header?.bearer else {
-            throw Abort.badRequest
-        }
-        
-        try req.auth.login(token)
         if let user = try req.auth.user() as? User {
             
             var newUser = User(user: user)
@@ -171,6 +174,17 @@ class UserController {
     //MARK: - Token
     
     func token(for user: User) -> String {
-        return encode(["hash":user.hash], algorithm: .hs256("secret".data(using: .utf8)!))
+        
+        let startDate = Date().toString()
+        let endDate = Date().addingTimeInterval(24 * 60 * 60).toString()
+        
+        if let startDate = startDate, let endDate = endDate {
+            return encode(["start": startDate, "end": endDate],
+                          algorithm: .hs256(user.hash.data(using: .utf8)!))
+        } else {
+            debugPrint("wrong dates")
+            return ""
+        }
     }
+    
 }
