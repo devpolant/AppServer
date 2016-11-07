@@ -34,10 +34,10 @@ final class User: Model {
         self.hash = user.hash
     }
     
-    //MARK: NodeConvertible
+    //MARK: - NodeConvertible
     
     init(node: Node, in context: Context) throws {
-        id = try node.extract("id")
+        id = try node.extract("_id")
         name = try node.extract("name")
         login = try node.extract("login")
         hash = try node.extract("hash")
@@ -46,7 +46,7 @@ final class User: Model {
     
     func makeNode(context: Context) throws -> Node {
         return try Node(node: [
-            "id": id,
+            "_id": id,
             "name": name,
             "login": login,
             "hash": hash,
@@ -54,7 +54,7 @@ final class User: Model {
             ])
     }
     
-    //MARK: Preparation
+    //MARK: - Preparation
     
     static func prepare(_ database: Database) throws {
         try database.create("users") { users in
@@ -74,22 +74,22 @@ final class User: Model {
 extension User: Auth.User {
     
     static func authenticate(credentials: Credentials) throws -> Auth.User {
-        var user: User?
+        
+        var user: User!
         
         switch credentials {
+            
         case let id as Identifier:
             user = try User.find(id.id)
+            
         case let accessToken as AccessToken:
             user = try User.query().filter("access_token", accessToken.string).first()
+            
         case let apiKey as APIKey:
-            debugPrint("get apikey: ", apiKey)
             do {
                 if let tempUser = try User.query().filter("login", apiKey.id).first() {
-                    debugPrint("user found, checking password")
-                    debugPrint(apiKey.secret)
-                    debugPrint(tempUser.hash)
+                    
                     if try BCrypt.verify(password: apiKey.secret, matchesHash: tempUser.hash) {
-                        debugPrint("password matched")
                         user = tempUser
                     }
                 }
@@ -97,11 +97,7 @@ extension User: Auth.User {
         default:
             throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
         }
-        
-        guard let us = user else {
-            throw Abort.custom(status: .badRequest, message: "User not found.")
-        }
-        return us
+        return user
     }
     
     static func register(credentials: Credentials) throws -> Auth.User {

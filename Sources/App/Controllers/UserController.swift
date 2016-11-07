@@ -83,6 +83,7 @@ class UserController {
         user.token = self.token(for: user)
         
         try user.save()
+        
         return try user.makeJSON()
     }
     
@@ -96,22 +97,19 @@ class UserController {
         let credentials = APIKey(id: login, secret: password)
         try req.auth.login(credentials)
         
-        guard let userId = try req.auth.user().id, let user = try User.find(userId) else {
+        guard let userId = try req.auth.user().id, var user = try User.find(userId) else {
             throw Abort.custom(status: .notFound, message: "User not found")
         }
         
-        var newUser = User(user: user)
-        newUser.token = self.token(for: user)
-        
+        user.token = self.token(for: user)
         do {
-            try user.delete()
-            try newUser.save()
+            try user.save()
         } catch {
             print(error)
         }
         
         return try JSON(node: ["message": "Logged in",
-                               "access_token" : newUser.token])
+                               "access_token" : user.token])
     }
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
@@ -190,5 +188,6 @@ class UserController {
             return ""
         }
     }
+    
     
 }
