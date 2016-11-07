@@ -75,7 +75,7 @@ extension User: Auth.User {
     
     static func authenticate(credentials: Credentials) throws -> Auth.User {
         
-        var user: User!
+        var user: User?
         
         switch credentials {
             
@@ -97,7 +97,11 @@ extension User: Auth.User {
         default:
             throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
         }
-        return user
+        
+        guard let resultUser = user else {
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
+        }
+        return resultUser
     }
     
     static func register(credentials: Credentials) throws -> Auth.User {

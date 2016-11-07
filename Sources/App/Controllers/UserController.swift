@@ -119,16 +119,8 @@ class UserController {
             do {
                 user.token = ""
                 try user.save()
-            } catch {
-                print(error)
-            }
-            
-            var logoutedUser = User(user: user)
-            
-            do {
-                try user.delete()
-                try logoutedUser.save()
                 try req.auth.logout()
+                
             } catch {
                 print(error)
             }
