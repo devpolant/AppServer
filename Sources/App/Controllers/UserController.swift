@@ -62,6 +62,7 @@ class UserController {
         let protectedGroup = userGroup.grouped(AuthenticationMiddleware())
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
+        protectedGroup.post("password", handler: changePassword)
     }
     
     
