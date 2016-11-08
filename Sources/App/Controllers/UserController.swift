@@ -75,7 +75,7 @@ class UserController {
                 throw Abort.badRequest
         }
         
-        if let _ = try User.query().filter("login", contains: login).first() {
+        if let _ = try User.query().filter("login", login).first() {
             throw Abort.custom(status: .conflict, message: "User already exist")
         }
         
@@ -136,32 +136,53 @@ class UserController {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        if let user = try req.auth.user() as? User {
-            
-            var newUser = User(user: user)
-            var isChanged = false
-            
-            if let newName = req.data["name"]?.string {
-                newUser.name = newName
-                isChanged = true
-            }
-            
-            if let newLogin = req.data["login"]?.string {
-                if (try User.query().filter("login", newLogin).first()) != nil {
-                    throw Abort.custom(status: .badRequest, message: "Such login already exist")
-                }
-                newUser.login = newLogin
-                isChanged = true
-            }
-            if isChanged {
-                newUser.token = user.token
-                try user.delete()
-                try newUser.save()
-                return try newUser.makeJSON()
-            }
-            throw Abort.custom(status: .badRequest, message: "No parameters")
+        guard var user = try req.auth.user() as? User else {
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
-        throw Abort.custom(status: .badRequest, message: "Invalid credentials")
+        
+        var isChanged = false
+        
+        if let newName = req.data["name"]?.string {
+            user.name = newName
+            isChanged = true
+        }
+        
+        if let newLogin = req.data["login"]?.string {
+            
+            if (try User.query().filter("login", newLogin).first()) != nil {
+                throw Abort.custom(status: .badRequest, message: "Login already exist")
+            }
+            user.login = newLogin
+            isChanged = true
+        }
+        if isChanged {
+            try user.save()
+            return try user.makeJSON()
+        }
+        throw Abort.custom(status: .badRequest, message: "No parameters")
+    }
+    
+    func changePassword(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard var user = try req.auth.user() as? User else {
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
+        }
+        
+        guard let oldPassword = req.data["old_password"]?.string,
+            let newPassword = req.data["new_password"]?.string else {
+                throw Abort.custom(status: .badRequest, message: "Old and new passwords required")
+        }
+        
+        //TODO: Validate password with regex.
+        
+        if user.isHashEqual(to: oldPassword) {
+            
+            user.updateHash(from: BCrypt.hash(password: newPassword))
+            try user.save()
+            
+            return try user.makeJSON()
+        }
+        throw Abort.custom(status: .badRequest, message: "Wrong password")
     }
     
     

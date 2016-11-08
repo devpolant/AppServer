@@ -28,11 +28,17 @@ final class User: Model {
         self.hash = BCrypt.hash(password: password)
     }
     
-    init(user: User) {
-        self.name = user.name
-        self.login = user.login
-        self.hash = user.hash
+    
+    //MARK: - Utils
+    
+    func updateHash(from password: String) {
+        self.hash = BCrypt.hash(password: password)
     }
+    
+    func isHashEqual(to password: String) -> Bool {
+        return self.hash == BCrypt.hash(password: password)
+    }
+    
     
     //MARK: - NodeConvertible
     
