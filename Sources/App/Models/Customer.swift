@@ -1,5 +1,5 @@
 //
-//  User.swift
+//  Customer.swift
 //  AppServer
 //
 //  Created by Anton Poltoratskyi on 29.10.16.
@@ -12,7 +12,7 @@ import Vapor
 import Auth
 import BCrypt
 
-final class User: Model {
+final class Customer: Model {
     
     var id: Node?
     var name: String
@@ -36,7 +36,13 @@ final class User: Model {
     }
     
     func isHashEqual(to password: String) -> Bool {
-        return self.hash == BCrypt.hash(password: password)
+        var result = false
+        do {
+            result = try BCrypt.verify(password: password, matchesHash: hash)
+        } catch {
+            print("Error while check password equality: \(error)")
+        }
+        return result
     }
     
     
@@ -63,7 +69,7 @@ final class User: Model {
     //MARK: - Preparation
     
     static func prepare(_ database: Database) throws {
-        try database.create("users") { users in
+        try database.create("customers") { users in
             users.id()
             users.string("name")
             users.string("login")
@@ -73,11 +79,13 @@ final class User: Model {
     }
     
     static func revert(_ database: Database) throws {
-        try database.delete("users")
+        try database.delete("customers")
     }
 }
 
-extension User: Auth.User {
+
+//MARK: - Auth.User
+extension Customer: Auth.User {
     
     static func authenticate(credentials: Credentials) throws -> Auth.User {
         
@@ -86,14 +94,14 @@ extension User: Auth.User {
         switch credentials {
             
         case let id as Identifier:
-            user = try User.find(id.id)
+            user = try Customer.find(id.id)
             
         case let accessToken as AccessToken:
-            user = try User.query().filter("access_token", accessToken.string).first()
+            user = try Customer.query().filter("access_token", accessToken.string).first()
             
         case let apiKey as APIKey:
             do {
-                if let tempUser = try User.query().filter("login", apiKey.id).first() {
+                if let tempUser = try Customer.query().filter("login", apiKey.id).first() {
                     
                     if try BCrypt.verify(password: apiKey.secret, matchesHash: tempUser.hash) {
                         user = tempUser

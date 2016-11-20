@@ -1,5 +1,5 @@
 //
-//  UserController.swift
+//  CustomerController.swift
 //  AppServer
 //
 //  Created by Anton Poltoratskyi on 30.10.16.
@@ -14,7 +14,7 @@ import Cookies
 import BCrypt
 import HTTP
 
-class UserController {
+class CustomerController {
     
     weak var drop: Droplet?
     
@@ -35,7 +35,7 @@ class UserController {
     
     private func setupAuth() {
         
-        let auth = AuthMiddleware(user: User.self) { value in
+        let auth = AuthMiddleware(user: Customer.self) { value in
             return Cookie(
                 name: "vapor-auth",
                 value: value,
@@ -54,7 +54,7 @@ class UserController {
             return
         }
         
-        let userGroup = drop.grouped("users")
+        let userGroup = drop.grouped("customer").grouped("auth")
         userGroup.post("register", handler: register)
         userGroup.post("login", handler: login)
         
@@ -62,7 +62,10 @@ class UserController {
         let protectedGroup = userGroup.grouped(AuthenticationMiddleware())
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
-        protectedGroup.post("password", handler: changePassword)
+        
+        let passwordGroup = protectedGroup.grouped("password")
+        passwordGroup.post("change", handler: changePassword)
+        //passwordGroup.post("forgot", handler: forgotPassword)
     }
     
     
@@ -76,11 +79,11 @@ class UserController {
                 throw Abort.badRequest
         }
         
-        if let _ = try User.query().filter("login", login).first() {
+        if let _ = try Customer.query().filter("login", login).first() {
             throw Abort.custom(status: .conflict, message: "User already exist")
         }
         
-        var user = User(name: name, login: login, password: password)
+        var user = Customer(name: name, login: login, password: password)
         user.token = self.token(for: user)
         
         try user.save()
@@ -98,7 +101,7 @@ class UserController {
         let credentials = APIKey(id: login, secret: password)
         try req.auth.login(credentials)
         
-        guard let userId = try req.auth.user().id, var user = try User.find(userId) else {
+        guard let userId = try req.auth.user().id, var user = try Customer.find(userId) else {
             throw Abort.custom(status: .notFound, message: "User not found")
         }
         
@@ -115,7 +118,7 @@ class UserController {
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        if var user = try req.auth.user() as? User {
+        if var user = try req.auth.user() as? Customer {
             
             do {
                 user.token = ""
@@ -137,7 +140,7 @@ class UserController {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.auth.user() as? User else {
+        guard var user = try req.auth.user() as? Customer else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         
@@ -150,7 +153,7 @@ class UserController {
         
         if let newLogin = req.data["login"]?.string {
             
-            if (try User.query().filter("login", newLogin).first()) != nil {
+            if (try Customer.query().filter("login", newLogin).first()) != nil {
                 throw Abort.custom(status: .badRequest, message: "Login already exist")
             }
             user.login = newLogin
@@ -165,7 +168,7 @@ class UserController {
     
     func changePassword(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.auth.user() as? User else {
+        guard var user = try req.auth.user() as? Customer else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         
@@ -189,7 +192,7 @@ class UserController {
     
     //MARK: - Token
     
-    func token(for user: User) -> String {
+    func token(for user: Customer) -> String {
         
         let startDate = Date().toString()
         let endDate = Date().addingTimeInterval(24 * 60 * 60).toString()

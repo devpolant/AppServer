@@ -8,7 +8,7 @@ import Cookies
 let drop = Droplet()
 
 
-//MARK: Providers
+//MARK: - Providers
 
 do {
     try drop.addProvider(VaporMongo.Provider.self)
@@ -16,16 +16,16 @@ do {
 } catch {
     print(error)
 }
-drop.preparations = [User.self]
+drop.preparations = [Customer.self]
 
 
-//MARK: Controllers
+//MARK: - Controllers
 
-let userController = UserController(droplet: drop)
+let userController = CustomerController(droplet: drop)
 userController.setup()
 
 
-//MARK: Routing
+//MARK: - Routing
 
 drop.get { req in
     return try drop.view.make("welcome", [
