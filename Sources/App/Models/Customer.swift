@@ -12,7 +12,7 @@ import Vapor
 import Auth
 import BCrypt
 
-final class Customer: Model {
+final class Customer: Model, User {
     
     var id: Node?
     var name: String
@@ -26,23 +26,6 @@ final class Customer: Model {
         self.name = name
         self.login = login
         self.hash = BCrypt.hash(password: password)
-    }
-    
-    
-    //MARK: - Utils
-    
-    func updateHash(from password: String) {
-        self.hash = BCrypt.hash(password: password)
-    }
-    
-    func isHashEqual(to password: String) -> Bool {
-        var result = false
-        do {
-            result = try BCrypt.verify(password: password, matchesHash: hash)
-        } catch {
-            print("Error while check password equality: \(error)")
-        }
-        return result
     }
     
     
@@ -89,22 +72,22 @@ extension Customer: Auth.User {
     
     static func authenticate(credentials: Credentials) throws -> Auth.User {
         
-        var user: User?
+        var customer: Customer?
         
         switch credentials {
             
         case let id as Identifier:
-            user = try Customer.find(id.id)
+            customer = try Customer.find(id.id)
             
         case let accessToken as AccessToken:
-            user = try Customer.query().filter("access_token", accessToken.string).first()
+            customer = try Customer.query().filter("access_token", accessToken.string).first()
             
         case let apiKey as APIKey:
             do {
                 if let tempUser = try Customer.query().filter("login", apiKey.id).first() {
                     
                     if try BCrypt.verify(password: apiKey.secret, matchesHash: tempUser.hash) {
-                        user = tempUser
+                        customer = tempUser
                     }
                 }
             }
@@ -112,10 +95,10 @@ extension Customer: Auth.User {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
         }
         
-        guard let resultUser = user else {
+        guard let resultCustomer = customer else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
         }
-        return resultUser
+        return resultCustomer
     }
     
     static func register(credentials: Credentials) throws -> Auth.User {

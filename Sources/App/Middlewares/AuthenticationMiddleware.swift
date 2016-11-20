@@ -20,7 +20,7 @@ final class AuthenticationMiddleware: Middleware {
         }
         
         do {
-            let user = try request.auth.user() as? Customer
+            let user = try request.auth.user() as? User
             if user?.token != token.string {
                 throw Abort.custom(status: .badRequest, message: "Invalid token")
             }
