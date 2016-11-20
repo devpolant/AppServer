@@ -6,7 +6,6 @@
 //
 //
 
-
 import Foundation
 import Vapor
 import Auth
@@ -19,7 +18,6 @@ class CustomerController {
     weak var drop: Droplet?
     
     init(droplet: Droplet) {
-        debugPrint("initializing UserController")
         self.drop = droplet
     }
     
@@ -28,7 +26,6 @@ class CustomerController {
             debugPrint("Drop is nil")
             return
         }
-        
         setupAuth()
         setupRoutes()
     }
@@ -58,7 +55,6 @@ class CustomerController {
         userGroup.post("register", handler: register)
         userGroup.post("login", handler: login)
         
-        
         let protectedGroup = userGroup.grouped(AuthenticationMiddleware())
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
@@ -80,7 +76,7 @@ class CustomerController {
         }
         
         if let _ = try Customer.query().filter("login", login).first() {
-            throw Abort.custom(status: .conflict, message: "User already exist")
+            throw Abort.custom(status: .conflict, message: "Customer already exist")
         }
         
         var user = Customer(name: name, login: login, password: password)
@@ -88,7 +84,9 @@ class CustomerController {
         
         try user.save()
         
-        return try user.makeJSON()
+        return try JSON(node: ["error": false,
+                               "message": "Successfully registered",
+                               "access_token" : user.token])
     }
     
     func login(_ req: Request) throws -> ResponseRepresentable {
@@ -102,7 +100,7 @@ class CustomerController {
         try req.auth.login(credentials)
         
         guard let userId = try req.auth.user().id, var user = try Customer.find(userId) else {
-            throw Abort.custom(status: .notFound, message: "User not found")
+            throw Abort.custom(status: .notFound, message: "Customer not found")
         }
         
         user.token = self.token(for: user)
@@ -112,7 +110,8 @@ class CustomerController {
             print(error)
         }
         
-        return try JSON(node: ["message": "Logged in",
+        return try JSON(node: ["error": false,
+                               "message": "Successfully logged in",
                                "access_token" : user.token])
     }
     
@@ -128,7 +127,6 @@ class CustomerController {
             } catch {
                 print(error)
             }
-            
             return try JSON(node: ["error": false,
                                    "message": "Logout succeded"])
         }
@@ -161,7 +159,8 @@ class CustomerController {
         }
         if isChanged {
             try user.save()
-            return try user.makeJSON()
+            return try JSON(node: ["error": false,
+                                   "message": "Customer profile changed"])
         }
         throw Abort.custom(status: .badRequest, message: "No parameters")
     }
@@ -184,7 +183,8 @@ class CustomerController {
             user.updateHash(from: newPassword)
             try user.save()
             
-            return try user.makeJSON()
+            return try JSON(node: ["error": false,
+                                   "message": "Password changed"])
         }
         throw Abort.custom(status: .badRequest, message: "Wrong password")
     }

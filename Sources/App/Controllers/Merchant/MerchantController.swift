@@ -82,7 +82,7 @@ class MerchantController {
         }
         
         if let _ = try Merchant.query().filter("login", login).first() {
-            throw Abort.custom(status: .conflict, message: "User already exist")
+            throw Abort.custom(status: .conflict, message: "Merchant already exist")
         }
         
         var merchant = Merchant(login: login,
@@ -97,7 +97,9 @@ class MerchantController {
         merchant.token = self.token(for: merchant)
         try merchant.save()
         
-        return try merchant.makeJSON()
+        return try JSON(node: ["error": false,
+                               "message": "Successfully registered",
+                               "access_token" : merchant.token])
     }
     
     func login(_ req: Request) throws -> ResponseRepresentable {
@@ -111,7 +113,7 @@ class MerchantController {
         try req.auth.login(credentials)
         
         guard let merchantId = try req.auth.user().id, var merchant = try Merchant.find(merchantId) else {
-            throw Abort.custom(status: .notFound, message: "User not found")
+            throw Abort.custom(status: .notFound, message: "Merchant not found")
         }
         
         merchant.token = self.token(for: merchant)
@@ -121,7 +123,8 @@ class MerchantController {
             print(error)
         }
         
-        return try JSON(node: ["message": "Logged in",
+        return try JSON(node: ["error": false,
+                               "message": "Successfully logged in",
                                "access_token" : merchant.token])
     }
     
@@ -137,7 +140,6 @@ class MerchantController {
             } catch {
                 print(error)
             }
-            
             return try JSON(node: ["error": false,
                                    "message": "Logout succeded"])
         }
@@ -170,7 +172,8 @@ class MerchantController {
         }
         if isChanged {
             try merchant.save()
-            return try merchant.makeJSON()
+            return try JSON(node: ["error": false,
+                                   "message": "Merchant profile changed"])
         }
         throw Abort.custom(status: .badRequest, message: "No parameters")
     }
@@ -193,7 +196,8 @@ class MerchantController {
             merchant.updateHash(from: newPassword)
             try merchant.save()
             
-            return try merchant.makeJSON()
+            return try JSON(node: ["error": false,
+                                   "message": "Password changed"])
         }
         throw Abort.custom(status: .badRequest, message: "Wrong password")
     }
