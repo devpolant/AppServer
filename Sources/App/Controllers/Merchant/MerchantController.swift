@@ -157,11 +157,6 @@ class MerchantController {
         
         var isChanged = false
         
-        if let newName = req.data["business_name"]?.string {
-            merchant.businessName = newName
-            isChanged = true
-        }
-        
         if let newLogin = req.data["login"]?.string {
             
             if (try Merchant.query().filter("login", newLogin).first()) != nil {
@@ -170,6 +165,30 @@ class MerchantController {
             merchant.login = newLogin
             isChanged = true
         }
+        
+        if let name = req.data["business_name"]?.string {
+            merchant.businessName = name
+            isChanged = true
+        }
+        if let country = req.data["country"]?.string {
+            merchant.country = country
+            isChanged = true
+        }
+        if let city = req.data["city"]?.string {
+            merchant.city = city
+            isChanged = true
+        }
+        
+        if let address = req.data["address"]?.string,
+            let latitude = req.data["latitude"]?.double,
+            let longitude = req.data["longitude"]?.double {
+            
+            merchant.address = address
+            merchant.latitude = latitude
+            merchant.longitude = longitude
+            isChanged = true
+        }
+        
         if isChanged {
             try merchant.save()
             return try JSON(node: ["error": false,
