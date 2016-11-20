@@ -181,7 +181,7 @@ class CustomerController {
         
         if user.isHashEqual(to: oldPassword) {
             
-            user.updateHash(from: BCrypt.hash(password: newPassword))
+            user.updateHash(from: newPassword)
             try user.save()
             
             return try user.makeJSON()
