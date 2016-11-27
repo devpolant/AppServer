@@ -17,7 +17,7 @@ final class MenuCategory: Model {
     var photoUrl: String?
     
     //Foreign key
-    var merchantId: Node
+    var merchantId: Int
     
     var exists: Bool = false
     
@@ -58,6 +58,6 @@ extension MenuCategory {
     }
     
     static func revert(_ database: Database) throws {
-        try database.delete("customers")
+        try database.delete("menu_categories")
     }
 }

@@ -8,6 +8,7 @@
 
 import Foundation
 import Vapor
+import Fluent
 import Auth
 import BCrypt
 
@@ -98,6 +99,14 @@ extension Merchant {
     
     static func revert(_ database: Database) throws {
         try database.delete("merchants")
+    }
+}
+
+
+//MARK: - DB Relations
+extension Merchant {
+    func menuCategories() -> Children<MenuCategory> {
+        return children()
     }
 }
 
