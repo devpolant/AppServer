@@ -35,6 +35,12 @@ merchantController.setup()
 let menuController = MenuController(droplet: drop)
 menuController.setup()
 
+let ordersController = OrdersController(droplet: drop)
+ordersController.setup()
+
+let placesController = PlacesController(droplet: drop)
+placesController.setup()
+
 
 //MARK: - Routing
 
