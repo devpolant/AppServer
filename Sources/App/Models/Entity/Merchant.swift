@@ -11,6 +11,7 @@ import Vapor
 import Fluent
 import Auth
 import BCrypt
+import HTTP
 
 final class Merchant: Model, User {
     
@@ -149,3 +150,12 @@ extension Merchant: Auth.User {
         throw Abort.custom(status: .badRequest, message: "Registration not supported")
     }
 }
+
+
+//MARK: - Request
+extension Request {
+    func merchant() throws -> Merchant? {
+        return try auth.user() as? Merchant
+    }
+}
+

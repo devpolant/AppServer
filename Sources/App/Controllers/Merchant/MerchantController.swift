@@ -112,7 +112,7 @@ class MerchantController {
         let credentials = APIKey(id: login, secret: password)
         try req.auth.login(credentials)
         
-        guard let merchantId = try req.auth.user().id, var merchant = try Merchant.find(merchantId) else {
+        guard let merchantId = try req.merchant()?.id, var merchant = try Merchant.find(merchantId) else {
             throw Abort.custom(status: .notFound, message: "Merchant not found")
         }
         
@@ -130,7 +130,7 @@ class MerchantController {
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        if var merchant = try req.auth.user() as? Merchant {
+        if var merchant = try req.merchant() {
             
             do {
                 merchant.token = ""
@@ -151,7 +151,7 @@ class MerchantController {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var merchant = try req.auth.user() as? Merchant else {
+        guard var merchant = try req.merchant() else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         
@@ -199,7 +199,7 @@ class MerchantController {
     
     func changePassword(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var merchant = try req.auth.user() as? Merchant else {
+        guard var merchant = try req.merchant() else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         
