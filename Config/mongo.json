@@ -1,7 +1,7 @@
 {
-    "user": "user",
+    "user": "admin",
     "password": "rootasdf123",
-    "database": "healthproject",
-    "port": "11735",
-    "host": "ds011735.mlab.com"
+    "database": "appserver",
+    "port": "11718",
+    "host": "ds111718.mlab.com"
 }
