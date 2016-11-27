@@ -109,7 +109,18 @@ final class MenuController: DropletConfigurable {
     }
     
     func deleteCategory(_ req: Request) throws -> ResponseRepresentable {
-        return ""
+        
+        guard let categoryId = req.data["category_id"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Category id required")
+        }
+        
+        guard let menuCategory = try MenuCategory.find(categoryId) else {
+            throw Abort.custom(status: .badRequest, message: "Category not found")
+        }
+        try menuCategory.delete()
+        
+        return try JSON(node: ["error": false,
+                               "message": "Category deleted"])
     }
     
     
