@@ -13,11 +13,11 @@ import Cookies
 import BCrypt
 import HTTP
 
-class MerchantController {
+class MerchantController: DropletConfigurable {
     
     weak var drop: Droplet?
     
-    init(droplet: Droplet) {
+    required init(droplet: Droplet) {
         self.drop = droplet
     }
     
