@@ -10,7 +10,7 @@ import Foundation
 import Vapor
 import HTTP
 
-final class MenuController: DropletConfigurable {
+class MenuController: DropletConfigurable {
     
     weak var drop: Droplet?
     
