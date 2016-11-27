@@ -40,8 +40,8 @@ final class MenuController: DropletConfigurable {
         
         let categoryGroup = menuGroup.grouped("category")
         categoryGroup.post("create", handler: createCategory)
-        categoryGroup.post("edit", handler: createCategory)
-        categoryGroup.post("delete", handler: createCategory)
+        categoryGroup.post("edit", handler: editCategory)
+        categoryGroup.post("delete", handler: deleteCategory)
         
         
     }
@@ -74,7 +74,38 @@ final class MenuController: DropletConfigurable {
     }
     
     func editCategory(_ req: Request) throws -> ResponseRepresentable {
-        return ""
+        
+        guard let categoryId = req.data["category_id"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Category id required")
+        }
+        
+        guard var menuCategory = try MenuCategory.find(categoryId) else {
+            throw Abort.custom(status: .badRequest, message: "Category not found")
+        }
+        
+        var isChanged = false
+        
+        if let categoryName = req.data["category_name"]?.string {
+            menuCategory.name = categoryName
+            isChanged = true
+        }
+        
+        if let categoryDescription = req.data["category_description"]?.string {
+            menuCategory.description = categoryDescription
+            isChanged = true
+        }
+        if let photo = req.data["photo_url"]?.string {
+            menuCategory.photoUrl = photo
+            isChanged = true
+        }
+        if isChanged {
+            try menuCategory.save()
+            
+            return try JSON(node: ["error": false,
+                                   "message": "Category edited",
+                                   "category" : menuCategory.makeJSON()])
+        }
+        throw Abort.custom(status: .badRequest, message: "No parameters")
     }
     
     func deleteCategory(_ req: Request) throws -> ResponseRepresentable {
