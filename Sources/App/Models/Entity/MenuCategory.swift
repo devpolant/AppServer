@@ -48,12 +48,12 @@ final class MenuCategory: Model {
 extension MenuCategory {
     
     static func prepare(_ database: Database) throws {
-        try database.create("custMenuCategoryomers") { users in
+        try database.create("menu_categories") { users in
             users.id()
             users.string("name")
-            users.string("login")
-            users.string("hash")
-            users.string("access_token")
+            users.string("description")
+            users.string("photo_url")
+            users.parent(Merchant.self, optional: false)
         }
     }
     
