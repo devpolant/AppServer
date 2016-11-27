@@ -49,6 +49,16 @@ class PlacesController: DropletConfigurable {
     //MARK: - Routes
     
     func allPlaces(_ req: Request) throws -> ResponseRepresentable {
+        
+        let merchants = try Merchant.query().all()
+        
+        var merchantsJsonArray = [Node]()
+        
+        for merchant in merchants {
+            let node = try merchant.makeNode()
+            merchantsJsonArray.append(node)
+        }
+        
         return ""
     }
     
@@ -57,7 +67,14 @@ class PlacesController: DropletConfigurable {
     }
     
     func placeInfo(_ req: Request) throws -> ResponseRepresentable {
-        return ""
+        
+        guard let merchantId = req.parameters["merchant_id"]?.string,
+            let merchant = try Merchant.find(merchantId) else {
+                throw Abort.custom(status: .badRequest, message: "Merchant id required")
+        }
+        
+        return try JSON(node: ["error": false,
+                               "merchant" : merchant.makeJSON()])
     }
     
     func placeMenu(_ req: Request) throws -> ResponseRepresentable {
