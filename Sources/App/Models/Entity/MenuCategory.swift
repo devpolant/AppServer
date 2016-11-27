@@ -8,6 +8,7 @@
 
 import Foundation
 import Vapor
+import Fluent
 
 final class MenuCategory: Model {
     
@@ -59,7 +60,7 @@ extension MenuCategory {
             users.string("name")
             users.string("description")
             users.string("photo_url")
-            users.parent(Merchant.self, optional: false)
+            users.id("merchant_id", optional: false)
         }
     }
     
@@ -67,3 +68,18 @@ extension MenuCategory {
         try database.delete("menu_categories")
     }
 }
+
+
+//MARK: - DB Relations
+
+extension MenuCategory {
+    func merchant() throws -> Parent<Merchant> {
+        return try parent(merchantId)
+    }
+}
+
+
+
+
+
+

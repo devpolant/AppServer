@@ -107,7 +107,7 @@ extension Merchant {
 //MARK: - DB Relations
 extension Merchant {
     func menuCategories() -> Children<MenuCategory> {
-        return children()
+        return children("merchant_id", MenuCategory.self)
     }
 }
 
