@@ -1,5 +1,5 @@
 //
-//  MenuCategory.swift
+//  MenuItem.swift
 //  AppServer
 //
 //  Created by Anton Poltoratskyi on 27.11.16.
@@ -11,22 +11,25 @@ import Vapor
 import Fluent
 import HTTP
 
-final class MenuCategory: Model {
+final class MenuItem: Model {
     
     var id: Node?
     var name: String
     var description: String
-    var merchantId: Node
     var photoUrl: String?
+    var price: Double
+    
+    var menuCategoryId: Node
     
     var exists: Bool = false
     
     
-    init(name: String, description: String, merchantId: Node, photoUrl: String? = nil) {
+    init(name: String, description: String, photoUrl: String? = nil, price: Double, menuCategoryId: Node) {
         self.name = name
         self.description = description
-        self.merchantId = merchantId
         self.photoUrl = photoUrl
+        self.price = price
+        self.menuCategoryId = menuCategoryId
     }
     
     
@@ -37,7 +40,8 @@ final class MenuCategory: Model {
         name = try node.extract("name")
         description = try node.extract("description")
         photoUrl = try node.extract("photo_url")
-        merchantId = try node.extract("merchant_id")
+        price = try node.extract("price")
+        menuCategoryId = try node.extract("menu_category_id")
     }
     
     func makeNode(context: Context) throws -> Node {
@@ -46,40 +50,38 @@ final class MenuCategory: Model {
             "name": name,
             "description": description,
             "photo_url": photoUrl,
-            "merchant_id": merchantId
+            "price": price,
+            "menu_category_id": menuCategoryId
             ])
     }
 }
 
 
 //MARK: - Preparation
-extension MenuCategory {
+extension MenuItem {
     
     static func prepare(_ database: Database) throws {
-        try database.create("menu_categories") { users in
+        try database.create("menu_items") { users in
             users.id("_id")
             users.string("name")
             users.string("description")
             users.string("photo_url")
-            users.id("merchant_id", optional: false)
+            users.string("price")
+            users.id("menu_category_id", optional: false)
         }
     }
     
     static func revert(_ database: Database) throws {
-        try database.delete("menu_categories")
+        try database.delete("menu_items")
     }
 }
 
 
 //MARK: - DB Relations
-extension MenuCategory {
-    
-    func merchant() throws -> Parent<Merchant> {
-        return try parent(merchantId)
-    }
-    
-    func menuItems() -> Children<MenuItem> {
-        return children("menu_category_id", MenuItem.self)
+
+extension MenuItem {
+    func category() throws -> Parent<MenuCategory> {
+        return try parent(menuCategoryId)
     }
 }
 
@@ -87,20 +89,15 @@ extension MenuCategory {
 //MARK: - Request
 extension Request {
     
-    func menuCategory() throws -> MenuCategory {
+    func menuItem() throws -> MenuItem {
         
-        guard let categoryId = data["category_id"]?.string else {
-            throw Abort.custom(status: .badRequest, message: "Category id required")
+        guard let itemId = data["item_id"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Menu item id required")
         }
-        
-        guard let menuCategory = try MenuCategory.find(categoryId) else {
-            throw Abort.custom(status: .badRequest, message: "Category not found")
+        guard let menuItem = try MenuItem.find(itemId) else {
+            throw Abort.custom(status: .badRequest, message: "Menu item not found")
         }
-        return menuCategory
+        return menuItem
     }
 }
-
-
-
-
 

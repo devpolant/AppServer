@@ -19,7 +19,8 @@ do {
 drop.preparations = [
     Customer.self,
     Merchant.self,
-    MenuCategory.self
+    MenuCategory.self,
+    MenuItem.self
 ]
 
 
