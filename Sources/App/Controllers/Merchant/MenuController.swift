@@ -34,18 +34,43 @@ final class MenuController: DropletConfigurable {
         }
         
         let merchantGroup = drop.grouped("merchant")
-            
-        let categoryGroup = merchantGroup.grouped("menu").grouped("category")
+        let protectedGroup = merchantGroup.grouped(AuthenticationMiddleware())
+        
+        let menuGroup = protectedGroup.grouped("menu")
+        
+        let categoryGroup = menuGroup.grouped("category")
         categoryGroup.post("create", handler: createCategory)
         categoryGroup.post("edit", handler: createCategory)
         categoryGroup.post("delete", handler: createCategory)
+        
+        
     }
     
     
     //MARK: - Category
     
     func createCategory(_ req: Request) throws -> ResponseRepresentable {
-        return ""
+        
+        guard let merchant = try req.merchant() else {
+            throw Abort.custom(status: .badRequest, message: "Merchant required")
+        }
+        guard let categoryName = req.data["category_name"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Category name required")
+        }
+        guard let description = req.data["category_description"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Category description required")
+        }
+        let photoUrl = req.data["photo_url"]?.string
+        
+        var menuCategory = MenuCategory(name: categoryName,
+                                        description: description,
+                                        merchantId: merchant.id!,
+                                        photoUrl: photoUrl)
+        try menuCategory.save()
+        
+        return try JSON(node: ["error": false,
+                               "message": "Category added",
+                               "category" : menuCategory.makeJSON()])
     }
     
     func editCategory(_ req: Request) throws -> ResponseRepresentable {

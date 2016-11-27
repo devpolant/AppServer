@@ -14,12 +14,18 @@ final class MenuCategory: Model {
     var id: Node?
     var name: String
     var description: String
+    var merchantId: Node
     var photoUrl: String?
     
-    //Foreign key
-    var merchantId: Int
-    
     var exists: Bool = false
+    
+    
+    init(name: String, description: String, merchantId: Node, photoUrl: String? = nil) {
+        self.name = name
+        self.description = description
+        self.merchantId = merchantId
+        self.photoUrl = photoUrl
+    }
     
     
     //MARK: - NodeConvertible

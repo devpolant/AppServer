@@ -16,7 +16,11 @@ do {
 } catch {
     print(error)
 }
-drop.preparations = [Customer.self, Merchant.self]
+drop.preparations = [
+    Customer.self,
+    Merchant.self,
+    MenuCategory.self
+]
 
 
 //MARK: - Controllers
@@ -26,6 +30,9 @@ userController.setup()
 
 let merchantController = MerchantController(droplet: drop)
 merchantController.setup()
+
+let menuController = MenuController(droplet: drop)
+menuController.setup()
 
 
 //MARK: - Routing
