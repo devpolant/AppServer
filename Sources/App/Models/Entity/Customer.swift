@@ -53,7 +53,7 @@ final class Customer: Model, User {
     
     static func prepare(_ database: Database) throws {
         try database.create("customers") { users in
-            users.id()
+            users.id("_id")
             users.string("name")
             users.string("login")
             users.string("hash")

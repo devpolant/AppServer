@@ -49,7 +49,7 @@ extension MenuCategory {
     
     static func prepare(_ database: Database) throws {
         try database.create("menu_categories") { users in
-            users.id()
+            users.id("_id")
             users.string("name")
             users.string("description")
             users.string("photo_url")

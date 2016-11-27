@@ -85,7 +85,7 @@ extension Merchant {
     
     static func prepare(_ database: Database) throws {
         try database.create("merchants") { merchants in
-            merchants.id()
+            merchants.id("_id")
             merchants.string("login")
             merchants.string("hash")
             merchants.string("access_token")
