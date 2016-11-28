@@ -59,11 +59,23 @@ class PlacesController: DropletConfigurable {
             merchantsJsonArray.append(node)
         }
         
-        return ""
+        return try JSON(node: ["error": false,
+                               "merchants": Node.array(merchantsJsonArray)])
     }
     
     func placesInRadius(_ req: Request) throws -> ResponseRepresentable {
-        return ""
+        
+        let merchants = try Merchant.query().all()
+        
+        var merchantsJsonArray = [Node]()
+        
+        for merchant in merchants {
+            let node = try merchant.makeNode()
+            merchantsJsonArray.append(node)
+        }
+        
+        return try JSON(node: ["error": false,
+                               "merchants": Node.array(merchantsJsonArray)])
     }
     
     func placeInfo(_ req: Request) throws -> ResponseRepresentable {
@@ -78,7 +90,21 @@ class PlacesController: DropletConfigurable {
     }
     
     func placeMenu(_ req: Request) throws -> ResponseRepresentable {
-        return ""
+        
+        guard let merchantId = req.parameters["merchant_id"]?.string,
+            let merchant = try Merchant.find(merchantId) else {
+                throw Abort.custom(status: .badRequest, message: "Merchant id required")
+        }
+        
+        let menuCategories = try merchant.menuCategories().all()
+        var responseNodes = [Node]()
+        
+        for category in menuCategories {
+            responseNodes.append(try category.makeNode())
+        }
+        
+        return try JSON(node: ["error": false,
+                               "menu_categories": Node.array(responseNodes)])
     }
     
 }
