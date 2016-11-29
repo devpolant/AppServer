@@ -11,6 +11,8 @@ import Foundation
 import Vapor
 import Auth
 import BCrypt
+import Fluent
+import HTTP
 
 final class Customer: Model, User {
     
@@ -85,6 +87,15 @@ extension Customer {
 }
 
 
+//MARK: - DB Relations
+extension Customer {
+    
+    func orders() -> Children<Order> {
+        return children("customer_id", Order.self)
+    }
+}
+
+
 //MARK: - Auth.User
 extension Customer: Auth.User {
     
@@ -123,3 +134,13 @@ extension Customer: Auth.User {
         throw Abort.custom(status: .badRequest, message: "Registration not supported")
     }
 }
+
+
+//MARK: - Request
+extension Request {
+    func customer() throws -> Customer? {
+        return try auth.user() as? Customer
+    }
+}
+
+

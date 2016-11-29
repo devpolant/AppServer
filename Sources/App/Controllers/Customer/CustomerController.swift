@@ -138,7 +138,7 @@ class CustomerController: DropletConfigurable {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.auth.user() as? Customer else {
+        guard var user = try req.customer() else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         
@@ -167,7 +167,7 @@ class CustomerController: DropletConfigurable {
     
     func changePassword(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.auth.user() as? Customer else {
+        guard var user = try req.customer() else {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         

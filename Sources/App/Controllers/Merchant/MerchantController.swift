@@ -130,20 +130,20 @@ class MerchantController: DropletConfigurable {
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        if var merchant = try req.merchant() {
-            
-            do {
-                merchant.token = ""
-                try merchant.save()
-                try req.auth.logout()
-                
-            } catch {
-                print(error)
-            }
-            return try JSON(node: ["error": false,
-                                   "message": "Logout succeded"])
+        guard var merchant = try req.merchant() else {
+            throw Abort.badRequest
         }
-        throw Abort.badRequest
+        
+        do {
+            merchant.token = ""
+            try merchant.save()
+            try req.auth.logout()
+            
+        } catch {
+            print(error)
+        }
+        return try JSON(node: ["error": false,
+                               "message": "Logout succeded"])
     }
     
     

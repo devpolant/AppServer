@@ -9,6 +9,7 @@
 import Foundation
 import Vapor
 import Fluent
+import HTTP
 
 final class Order: Model {
     
@@ -25,6 +26,7 @@ final class Order: Model {
         case unconfirmed = "unconfirmed"
         case approved = "approved"
         case declined = "declined"
+        case completed = "completed"
     }
     
     init(customerId: Node, merchantId: Node, createdDate: Int, availabilityDate: Int, state: State = .unconfirmed) {
@@ -85,6 +87,23 @@ extension Order {
     
     func orderItems() -> Children<OrderItem> {
         return children("order_id", OrderItem.self)
+    }
+}
+
+
+//MARK: - Request
+extension Request {
+    
+    func order() throws -> Order {
+        
+        guard let orderId = data["order_id"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Order id required")
+        }
+        
+        guard let order = try Order.find(orderId) else {
+            throw Abort.custom(status: .badRequest, message: "Order not found")
+        }
+        return order
     }
 }
 
