@@ -48,22 +48,6 @@ final class Customer: Model, User {
             "access_token": token
             ])
     }
-    
-    //MARK: - Preparation
-    
-    static func prepare(_ database: Database) throws {
-        try database.create("customers") { users in
-            users.id("_id")
-            users.string("name")
-            users.string("login")
-            users.string("hash")
-            users.string("access_token")
-        }
-    }
-    
-    static func revert(_ database: Database) throws {
-        try database.delete("customers")
-    }
 }
 
 
@@ -78,6 +62,25 @@ extension Customer {
             "login": login,
             "access_token": token
             ])
+    }
+}
+
+
+//MARK: - Preparation
+extension Customer {
+    
+    static func prepare(_ database: Database) throws {
+        try database.create("customers") { users in
+            users.id("_id")
+            users.string("name")
+            users.string("login")
+            users.string("hash")
+            users.string("access_token")
+        }
+    }
+    
+    static func revert(_ database: Database) throws {
+        try database.delete("customers")
     }
 }
 
