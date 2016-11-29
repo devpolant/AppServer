@@ -80,6 +80,26 @@ final class Merchant: Model, User {
 }
 
 
+//MARK: - Public Response
+extension Merchant {
+    
+    func makeResposeNode() throws -> Node {
+        
+        return try Node(node: [
+            "_id": id,
+            "login": login,
+            "access_token": token,
+            "business_name": businessName,
+            "country": country,
+            "city": city,
+            "address": address,
+            "latitude": latitude,
+            "longitude": longitude
+            ])
+    }
+}
+
+
 //MARK: - Preparation
 extension Merchant {
     

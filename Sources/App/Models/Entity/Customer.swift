@@ -67,6 +67,21 @@ final class Customer: Model, User {
 }
 
 
+//MARK: - Public Response
+extension Customer {
+    
+    func makeResposeNode() throws -> Node {
+        
+        return try Node(node: [
+            "_id": id,
+            "name": name,
+            "login": login,
+            "access_token": token
+            ])
+    }
+}
+
+
 //MARK: - Auth.User
 extension Customer: Auth.User {
     
