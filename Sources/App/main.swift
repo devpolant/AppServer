@@ -20,7 +20,9 @@ drop.preparations = [
     Customer.self,
     Merchant.self,
     MenuCategory.self,
-    MenuItem.self
+    MenuItem.self,
+    Order.self,
+    OrderItem.self
 ]
 
 
