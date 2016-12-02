@@ -121,7 +121,7 @@ extension Request {
     
     func order() throws -> Order {
         
-        guard let orderId = data["order_id"]?.string else {
+        guard let orderId = parameters["order_id"]?.string ?? data["order_id"]?.string else {
             throw Abort.custom(status: .badRequest, message: "Order id required")
         }
         

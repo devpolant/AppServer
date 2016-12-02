@@ -70,8 +70,9 @@ class OrdersController: DropletConfigurable {
     func orderDetails(_ req: Request) throws -> ResponseRepresentable {
         
         let order = try req.order()
+        
         return try JSON(node: ["error": false,
-                               "order": try order.makeJSON()])
+                               "order": try order.publicResponseNode()])
     }
     
     
@@ -82,16 +83,11 @@ class OrdersController: DropletConfigurable {
         guard let merchant = try req.merchant() else {
             throw Abort.badRequest
         }
-        
-        let orders = try merchant.orders().all()
-        
         var ordersJSONArray = [Node]()
         
-        for order in orders {
-            let node = try order.makeNode()
-            ordersJSONArray.append(node)
+        for order in try merchant.orders().all() {
+            ordersJSONArray.append(try order.publicResponseNode())
         }
-        
         return try JSON(node: ["error": false,
                                "orders": Node.array(ordersJSONArray)])
     }
@@ -143,16 +139,11 @@ class OrdersController: DropletConfigurable {
         guard let customer = try req.customer() else {
             throw Abort.badRequest
         }
-        
-        let orders = try customer.orders().all()
-        
         var ordersJSONArray = [Node]()
         
-        for order in orders {
-            let node = try order.makeNode()
-            ordersJSONArray.append(node)
+        for order in try customer.orders().all() {
+            ordersJSONArray.append(try order.publicResponseNode())
         }
-        
         return try JSON(node: ["error": false,
                                "orders": Node.array(ordersJSONArray)])
     }
