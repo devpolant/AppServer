@@ -29,6 +29,7 @@ class PlacesController: DropletConfigurable {
             debugPrint("Drop is nil")
             return
         }
+        setupRoutes()
     }
     
     private func setupRoutes() {
@@ -59,15 +60,17 @@ class PlacesController: DropletConfigurable {
         var merchantsJsonArray = [Node]()
         
         for merchant in try Merchant.query().all() {
-            let node = try merchant.publicResponseNode()
-            merchantsJsonArray.append(node)
+            merchantsJsonArray.append(try merchant.publicResponseNode())
         }
-        
         return try JSON(node: ["error": false,
                                "merchants": Node.array(merchantsJsonArray)])
     }
     
     func placesInRadius(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let radiusInMeters = req.data["radius"]?.int else {
+            throw Abort.custom(status: .badRequest, message: "radius required")
+        }
         
         var merchantsJsonArray = [Node]()
         
