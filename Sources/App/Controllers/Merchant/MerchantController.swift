@@ -26,11 +26,15 @@ class MerchantController: DropletConfigurable {
             debugPrint("Drop is nil")
             return
         }
-        setupAuth()
         setupRoutes()
     }
     
-    private func setupAuth() {
+    private func setupRoutes() {
+        
+        guard let drop = drop else {
+            debugPrint("Drop is nil")
+            return
+        }
         
         let auth = AuthMiddleware(user: Merchant.self) { value in
             return Cookie(
@@ -41,17 +45,8 @@ class MerchantController: DropletConfigurable {
                 httpOnly: true
             )
         }
-        drop?.addConfigurable(middleware: auth, name: "auth")
-    }
-    
-    private func setupRoutes() {
         
-        guard let drop = drop else {
-            debugPrint("Drop is nil")
-            return
-        }
-        
-        let merchantGroup = drop.grouped("merchant").grouped("auth")
+        let merchantGroup = drop.grouped("merchant").grouped(auth).grouped("auth")
         merchantGroup.post("register", handler: register)
         merchantGroup.post("login", handler: login)
         

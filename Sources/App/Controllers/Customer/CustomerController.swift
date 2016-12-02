@@ -26,11 +26,15 @@ class CustomerController: DropletConfigurable {
             debugPrint("Drop is nil")
             return
         }
-        setupAuth()
         setupRoutes()
     }
     
-    private func setupAuth() {
+    private func setupRoutes() {
+        
+        guard let drop = drop else {
+            debugPrint("Drop is nil")
+            return
+        }
         
         let auth = AuthMiddleware(user: Customer.self) { value in
             return Cookie(
@@ -41,17 +45,8 @@ class CustomerController: DropletConfigurable {
                 httpOnly: true
             )
         }
-        drop?.addConfigurable(middleware: auth, name: "auth")
-    }
-    
-    private func setupRoutes() {
         
-        guard let drop = drop else {
-            debugPrint("Drop is nil")
-            return
-        }
-        
-        let userGroup = drop.grouped("customer").grouped("auth")
+        let userGroup = drop.grouped("customer").grouped(auth).grouped("auth")
         userGroup.post("register", handler: register)
         userGroup.post("login", handler: login)
         
