@@ -9,6 +9,7 @@
 import Foundation
 import Vapor
 import HTTP
+import Auth
 
 /*
  * Places is merchants with their appropriate locations.
@@ -37,7 +38,12 @@ class PlacesController: DropletConfigurable {
             return
         }
         
-        let placesGroup = drop.grouped("places").grouped(AuthenticationMiddleware())
+        let customerAuth = AuthMiddlewareFactory.shared.customerAuthMiddleware
+        
+        let placesGroup = drop.grouped("customer")
+            .grouped(customerAuth)
+            .grouped(AuthenticationMiddleware())
+            .grouped("places")
         
         placesGroup.post("all", handler: allPlaces)
         placesGroup.post("radius", handler: placesInRadius)

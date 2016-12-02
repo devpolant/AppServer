@@ -36,25 +36,22 @@ class MerchantController: DropletConfigurable {
             return
         }
         
-        let auth = AuthMiddleware(user: Merchant.self) { value in
-            return Cookie(
-                name: "vapor-auth",
-                value: value,
-                expires: Date().addingTimeInterval(60 * 60 * 5), // 5 hours
-                secure: true,
-                httpOnly: true
-            )
-        }
+        let auth = AuthMiddlewareFactory.shared.merchantAuthMiddleware
         
-        let merchantGroup = drop.grouped("merchant").grouped(auth).grouped("auth")
+        let merchantGroup = drop.grouped("merchant")
+            .grouped("auth")
+            .grouped(auth)
+        
         merchantGroup.post("register", handler: register)
         merchantGroup.post("login", handler: login)
         
         let protectedGroup = merchantGroup.grouped(AuthenticationMiddleware())
+        
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
         
         let passwordGroup = protectedGroup.grouped("password")
+        
         passwordGroup.post("change", handler: changePassword)
         //passwordGroup.post("forgot", handler: forgotPassword)
     }

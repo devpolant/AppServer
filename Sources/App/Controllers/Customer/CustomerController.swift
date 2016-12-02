@@ -36,25 +36,22 @@ class CustomerController: DropletConfigurable {
             return
         }
         
-        let auth = AuthMiddleware(user: Customer.self) { value in
-            return Cookie(
-                name: "vapor-auth",
-                value: value,
-                expires: Date().addingTimeInterval(60 * 60 * 5), // 5 hours
-                secure: true,
-                httpOnly: true
-            )
-        }
+        let auth = AuthMiddlewareFactory.shared.customerAuthMiddleware
         
-        let userGroup = drop.grouped("customer").grouped(auth).grouped("auth")
+        let userGroup = drop.grouped("customer")
+            .grouped(auth)
+            .grouped("auth")
+        
         userGroup.post("register", handler: register)
         userGroup.post("login", handler: login)
         
         let protectedGroup = userGroup.grouped(AuthenticationMiddleware())
+        
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
         
         let passwordGroup = protectedGroup.grouped("password")
+        
         passwordGroup.post("change", handler: changePassword)
         //passwordGroup.post("forgot", handler: forgotPassword)
     }

@@ -35,17 +35,21 @@ class MenuController: DropletConfigurable {
             return
         }
         
-        let merchantGroup = drop.grouped("merchant")
-        let protectedGroup = merchantGroup.grouped(AuthenticationMiddleware())
+        let merchantAuth = AuthMiddlewareFactory.shared.merchantAuthMiddleware
         
-        let menuGroup = protectedGroup.grouped("menu")
+        let menuGroup = drop.grouped("merchant")
+            .grouped(merchantAuth)
+            .grouped(AuthenticationMiddleware())
+            .grouped("menu")
         
         let categoryGroup = menuGroup.grouped("category")
+        
         categoryGroup.post("create", handler: createCategory)
         categoryGroup.post("edit", handler: editCategory)
         categoryGroup.post("delete", handler: deleteCategory)
         
         let menuItemsGroup = menuGroup.grouped("item")
+        
         menuItemsGroup.post("create", handler: createItem)
         menuItemsGroup.post("edit", handler: editItem)
         menuItemsGroup.post("delete", handler: deleteItem)

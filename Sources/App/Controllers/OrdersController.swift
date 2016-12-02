@@ -35,17 +35,31 @@ class OrdersController: DropletConfigurable {
             return
         }
         
-        let ordersGroup = drop.grouped("orders").grouped(AuthenticationMiddleware())
+        let customerAuth = AuthMiddlewareFactory.shared.customerAuthMiddleware
+        let merchantAuth = AuthMiddlewareFactory.shared.merchantAuthMiddleware
+        let auth = AuthenticationMiddleware()
         
-        ordersGroup.post("details", ":order_id", handler: orderDetails)
+        let ordersGroup = drop.grouped("orders")
+        
         
         let merchant = ordersGroup.grouped("merchant")
+            .grouped(merchantAuth)
+            .grouped(auth)
+        
+        merchant.post("details", ":order_id", handler: orderDetails)
+        
         merchant.post("list", handler: merchantOrders)
         merchant.post("approve", ":order_id", handler: approveOrder)
         merchant.post("decline", ":order_id", handler: declineOrder)
         merchant.post("complete", ":order_id", handler: completeOrder)
         
+        
         let customer = ordersGroup.grouped("customer")
+            .grouped(customerAuth)
+            .grouped(auth)
+        
+        customer.post("details", ":order_id", handler: orderDetails)
+        
         customer.post("list", handler: customerOrders)
         customer.post("create", handler: createOrder)
     }
