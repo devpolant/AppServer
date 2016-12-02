@@ -19,6 +19,11 @@ final class OrderItem: Model {
     
     var exists: Bool = false
     
+    init(orderId: Node, menuItemId: Node, quantity: Int) {
+        self.orderId = orderId
+        self.menuItemId = menuItemId
+        self.quantity = quantity
+    }
     
     //MARK: - NodeConvertible
     

@@ -54,9 +54,9 @@ final class Customer: Model, User {
 
 
 //MARK: - Public Response
-extension Customer {
+extension Customer: PublicResponseRepresentable {
     
-    func makeResposeNode() throws -> Node {
+    func publicResponseNode() throws -> Node {
         
         return try Node(node: [
             "_id": id,

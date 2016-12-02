@@ -162,23 +162,44 @@ class OrdersController: DropletConfigurable {
         guard let customer = try req.customer(),
             let merchantId = req.data["merchant_id"]?.string,
             let merchant = try Merchant.find(merchantId),
-            let orderDate = req.data["availability_date"]?.int else {
+            let orderDate = req.data["availability_date"]?.int,
+            let items = req.data["items"]?.array else {
                 throw Abort.badRequest
         }
+        
         var order = Order(customerId: customer.id!,
                           merchantId: merchant.id!,
                           createdDate: Int(Date().timeIntervalSince1970),
                           availabilityDate: orderDate)
-        
         do {
             try order.save()
-            return try JSON(node: ["error": false,
-                                   "message": "Order created",
-                                   "order": order.makeJSON()])
         } catch {
-            print(error)
+            throw Abort.serverError
         }
-        throw Abort.serverError
+        
+        for jsonItem in items {
+            guard let object = jsonItem.object else {
+                continue
+            }
+            let menuItemId = object["item_id"]!.string!
+            let quantity = object["quantity"]!.int!
+            
+            guard let menuItem = try MenuItem.find(menuItemId) else {
+                continue
+            }
+            
+            var orderItem = OrderItem(orderId: order.id!,
+                                      menuItemId: menuItem.id!,
+                                      quantity: quantity)
+            do {
+                try orderItem.save()
+            } catch {
+                throw Abort.serverError
+            }
+        }
+        return try JSON(node: ["error": false,
+                               "message": "Order created",
+                               "order": order.publicResponseNode()])
     }
     
 }

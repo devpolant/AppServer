@@ -81,9 +81,9 @@ final class Merchant: Model, User {
 
 
 //MARK: - Public Response
-extension Merchant {
+extension Merchant: PublicResponseRepresentable {
     
-    func makeResposeNode() throws -> Node {
+    func publicResponseNode() throws -> Node {
         
         return try Node(node: [
             "_id": id,

@@ -82,6 +82,31 @@ extension Order {
 }
 
 
+//MARK: - Public Response
+
+extension Order: PublicResponseRepresentable {
+    
+    func publicResponseNode() throws -> Node {
+        
+        var orderItemNodes = [Node]()
+        
+        for item in try orderItems().all() {
+            orderItemNodes.append(try item.makeNode())
+        }
+        
+        return try Node(node: [
+            "_id": id,
+            "customer_id": customerId,
+            "merchant_id": merchantId,
+            "created_date": createdDate,
+            "availability_date": availabilityDate,
+            "state": state.rawValue,
+            "order_items": Node.array(orderItemNodes)
+            ])
+    }
+}
+
+
 //MARK: - DB Relation
 extension Order {
     

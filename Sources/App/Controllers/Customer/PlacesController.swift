@@ -56,12 +56,10 @@ class PlacesController: DropletConfigurable {
     
     func allPlaces(_ req: Request) throws -> ResponseRepresentable {
         
-        let merchants = try Merchant.query().all()
-        
         var merchantsJsonArray = [Node]()
         
-        for merchant in merchants {
-            let node = try merchant.makeResposeNode()
+        for merchant in try Merchant.query().all() {
+            let node = try merchant.publicResponseNode()
             merchantsJsonArray.append(node)
         }
         
@@ -71,12 +69,10 @@ class PlacesController: DropletConfigurable {
     
     func placesInRadius(_ req: Request) throws -> ResponseRepresentable {
         
-        let merchants = try Merchant.query().all()
-        
         var merchantsJsonArray = [Node]()
         
-        for merchant in merchants {
-            let node = try merchant.makeResposeNode()
+        for merchant in try Merchant.query().all() {
+            let node = try merchant.publicResponseNode()
             merchantsJsonArray.append(node)
         }
         
@@ -92,7 +88,7 @@ class PlacesController: DropletConfigurable {
         }
         
         return try JSON(node: ["error": false,
-                               "merchant" : merchant.makeResposeNode()])
+                               "merchant" : merchant.publicResponseNode()])
     }
     
     func placeMenu(_ req: Request) throws -> ResponseRepresentable {
@@ -101,13 +97,12 @@ class PlacesController: DropletConfigurable {
             let merchant = try Merchant.find(merchantId) else {
                 throw Abort.custom(status: .badRequest, message: "Merchant id required")
         }
-        let menuCategories = try merchant.menuCategories().all()
+        
         var responseNodes = [Node]()
         
-        for category in menuCategories {
+        for category in try merchant.menuCategories().all() {
             responseNodes.append(try category.makeNode())
         }
-        
         return try JSON(node: ["error": false,
                                "menu_categories": Node.array(responseNodes)])
     }
