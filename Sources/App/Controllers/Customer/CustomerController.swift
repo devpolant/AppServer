@@ -17,6 +17,8 @@ class CustomerController: DropletConfigurable {
     
     weak var drop: Droplet?
     
+    //MARK: - DropletConfigurable
+    
     required init(droplet: Droplet) {
         self.drop = droplet
     }
@@ -28,6 +30,16 @@ class CustomerController: DropletConfigurable {
         }
         setupRoutes()
     }
+    
+    //MARK: - Errors
+    
+    enum CustomerAuthError: Error {
+        case invalidCredentials
+        case loginExists
+    }
+    
+    
+    //MARK: - Routes
     
     private func setupRoutes() {
         
@@ -69,7 +81,7 @@ class CustomerController: DropletConfigurable {
         }
         
         if let _ = try Customer.query().filter("login", login).first() {
-            throw Abort.custom(status: .conflict, message: "Customer already exist")
+            throw CustomerAuthError.loginExists
         }
         
         var user = Customer(name: name, login: login, password: password)
@@ -93,7 +105,7 @@ class CustomerController: DropletConfigurable {
         try req.auth.login(credentials)
         
         guard let userId = try req.auth.user().id, var user = try Customer.find(userId) else {
-            throw Abort.custom(status: .notFound, message: "Customer not found")
+            throw CustomerAuthError.invalidCredentials
         }
         
         user.token = self.token(for: user)
@@ -110,18 +122,15 @@ class CustomerController: DropletConfigurable {
     
     func showProfile(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let customer = try req.customer() else {
-            throw Abort.custom(status: .badRequest, message: "Customer token required")
-        }
+        let customer = try req.customer()
+        
         return try JSON(node: ["error": false,
                                "profile": customer.publicResponseNode()])
     }
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.customer() else {
-            throw Abort.badRequest
-        }
+        var user = try req.customer()
         do {
             user.token = ""
             try user.save()
@@ -139,9 +148,7 @@ class CustomerController: DropletConfigurable {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.customer() else {
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
-        }
+        var user = try req.customer()
         
         var isChanged = false
         
@@ -153,7 +160,7 @@ class CustomerController: DropletConfigurable {
         if let newLogin = req.data["login"]?.string {
             
             if (try Customer.query().filter("login", newLogin).first()) != nil {
-                throw Abort.custom(status: .badRequest, message: "Login already exist")
+                throw CustomerAuthError.loginExists
             }
             user.login = newLogin
             isChanged = true
@@ -168,9 +175,7 @@ class CustomerController: DropletConfigurable {
     
     func changePassword(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var user = try req.customer() else {
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
-        }
+        var user = try req.customer()
         
         guard let oldPassword = req.data["old_password"]?.string,
             let newPassword = req.data["new_password"]?.string else {
@@ -206,6 +211,5 @@ class CustomerController: DropletConfigurable {
             return ""
         }
     }
-    
     
 }

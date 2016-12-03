@@ -32,6 +32,14 @@ final class AuthenticationMiddleware: Middleware {
                 throw Abort.custom(status: .badRequest, message: "Invalid token")
             }
         }
-        return try next.respond(to: request)
+        
+        do {
+            return try next.respond(to: request)
+        } catch CustomerController.CustomerAuthError.loginExists {
+            throw Abort.custom(status: .conflict, message: "Login alredy exists")
+            
+        } catch CustomerController.CustomerAuthError.invalidCredentials {
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
+        }
     }
 }

@@ -121,11 +121,11 @@ extension Customer: Auth.User {
                 }
             }
         default:
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         
         guard let resultCustomer = customer else {
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
         return resultCustomer
     }
@@ -138,8 +138,8 @@ extension Customer: Auth.User {
 
 //MARK: - Request
 extension Request {
-    func customer() throws -> Customer? {
-        return try auth.user() as? Customer
+    func customer() throws -> Customer {
+        return try auth.user() as! Customer
     }
 }
 

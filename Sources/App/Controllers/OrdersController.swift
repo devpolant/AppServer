@@ -136,9 +136,8 @@ class OrdersController: DropletConfigurable {
     
     func customerOrders(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let customer = try req.customer() else {
-            throw Abort.badRequest
-        }
+        let customer = try req.customer()
+        
         var ordersJSONArray = [Node]()
         
         for order in try customer.orders().all() {
@@ -150,8 +149,9 @@ class OrdersController: DropletConfigurable {
     
     func createOrder(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let customer = try req.customer(),
-            let merchantId = req.data["merchant_id"]?.string,
+        let customer = try req.customer()
+        
+        guard let merchantId = req.data["merchant_id"]?.string,
             let merchant = try Merchant.find(merchantId),
             let orderDate = req.data["availability_date"]?.int,
             let items = req.data["items"]?.array else {
