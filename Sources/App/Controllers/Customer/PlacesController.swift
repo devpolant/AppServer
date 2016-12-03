@@ -68,13 +68,20 @@ class PlacesController: DropletConfigurable {
     
     func placesInRadius(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let radiusInMeters = req.data["radius"]?.int else {
+        guard let radiusInMeters = req.data["radius"]?.double,
+            let latitude = req.data["latitude"]?.double,
+            let longitude = req.data["longitude"]?.double else {
             throw Abort.custom(status: .badRequest, message: "radius required")
         }
+        let location = Location(latitude: latitude, longitude: longitude)
         
         var merchantsJsonArray = [Node]()
         
-        for merchant in try Merchant.query().all() {
+        let merchants = try Merchant.query().all().filter { merchant in
+            return merchant.location.distance(to: location) <= radiusInMeters
+        }
+        
+        for merchant in merchants {
             let node = try merchant.publicResponseNode()
             merchantsJsonArray.append(node)
         }

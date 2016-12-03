@@ -24,15 +24,12 @@ final class Merchant: Model, User {
     var country: String
     var city: String
     var address: String
-    
-    //Coordinates of merchant place.
-    var latitude: Double
-    var longitude: Double
+    var location: Location
 
     var exists: Bool = false
     
     
-    init(login: String, password: String, businessName: String, country: String, city: String, address: String, latitude: Double, longitude: Double) {
+    init(login: String, password: String, businessName: String, country: String, city: String, address: String, location: Location) {
         
         self.login = login
         self.hash = BCrypt.hash(password: password)
@@ -41,8 +38,7 @@ final class Merchant: Model, User {
         self.country = country
         self.city = city
         self.address = address
-        self.latitude = latitude
-        self.longitude = longitude
+        self.location = location
     }
     
     
@@ -59,8 +55,8 @@ final class Merchant: Model, User {
         country = try node.extract("country")
         city = try node.extract("city")
         address = try node.extract("address")
-        latitude = try node.extract("latitude")
-        longitude = try node.extract("longitude")
+        location = Location(latitude: try node.extract("latitude"),
+                            longitude: try node.extract("longitude"))
     }
     
     func makeNode(context: Context) throws -> Node {
@@ -73,8 +69,8 @@ final class Merchant: Model, User {
             "country": country,
             "city": city,
             "address": address,
-            "latitude": latitude,
-            "longitude": longitude
+            "latitude": location.latitude,
+            "longitude": location.longitude
             ])
     }
 }
@@ -93,8 +89,8 @@ extension Merchant: PublicResponseRepresentable {
             "country": country,
             "city": city,
             "address": address,
-            "latitude": latitude,
-            "longitude": longitude
+            "latitude": location.latitude,
+            "longitude": location.longitude
             ])
     }
 }

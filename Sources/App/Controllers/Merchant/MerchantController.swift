@@ -83,8 +83,8 @@ class MerchantController: DropletConfigurable {
                                 country: country,
                                 city: city,
                                 address: address,
-                                latitude: latitude,
-                                longitude: longitude)
+                                location: Location(latitude: latitude,
+                                                   longitude: longitude))
         
         merchant.token = self.token(for: merchant)
         try merchant.save()
@@ -176,8 +176,8 @@ class MerchantController: DropletConfigurable {
             let longitude = req.data["longitude"]?.double {
             
             merchant.address = address
-            merchant.latitude = latitude
-            merchant.longitude = longitude
+            merchant.location = Location(latitude: latitude,
+                                         longitude: longitude)
             isChanged = true
         }
         
