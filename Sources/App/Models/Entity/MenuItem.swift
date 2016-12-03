@@ -67,7 +67,7 @@ extension MenuItem {
             users.string("description")
             users.string("photo_url")
             users.string("price")
-            users.id("menu_category_id", optional: false)
+            users.id("menu_category_id")
         }
     }
     

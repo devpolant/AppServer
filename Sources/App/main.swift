@@ -43,6 +43,9 @@ ordersController.setup()
 let placesController = PlacesController(droplet: drop)
 placesController.setup()
 
+let visitorsController = VisitorsController(droplet: drop)
+visitorsController.setup()
+
 
 //MARK: - Routing
 

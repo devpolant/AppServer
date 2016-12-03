@@ -61,7 +61,7 @@ extension MenuCategory {
             users.string("name")
             users.string("description")
             users.string("photo_url")
-            users.id("merchant_id", optional: false)
+            users.id("merchant_id")
         }
     }
     

@@ -25,11 +25,12 @@ final class Merchant: Model, User {
     var city: String
     var address: String
     var location: Location
+    var visitorsCount: Int?
 
     var exists: Bool = false
     
     
-    init(login: String, password: String, businessName: String, country: String, city: String, address: String, location: Location) {
+    init(login: String, password: String, businessName: String, country: String, city: String, address: String, location: Location, visitorsCount: Int? = nil) {
         
         self.login = login
         self.hash = BCrypt.hash(password: password)
@@ -39,6 +40,7 @@ final class Merchant: Model, User {
         self.city = city
         self.address = address
         self.location = location
+        self.visitorsCount = visitorsCount
     }
     
     
@@ -57,6 +59,7 @@ final class Merchant: Model, User {
         address = try node.extract("address")
         location = Location(latitude: try node.extract("latitude"),
                             longitude: try node.extract("longitude"))
+        visitorsCount = try node.extract("visitors_count")
     }
     
     func makeNode(context: Context) throws -> Node {
@@ -70,7 +73,8 @@ final class Merchant: Model, User {
             "city": city,
             "address": address,
             "latitude": location.latitude,
-            "longitude": location.longitude
+            "longitude": location.longitude,
+            "visitors_count": visitorsCount
             ])
     }
 }
@@ -90,7 +94,8 @@ extension Merchant: PublicResponseRepresentable {
             "city": city,
             "address": address,
             "latitude": location.latitude,
-            "longitude": location.longitude
+            "longitude": location.longitude,
+            "visitors_count": visitorsCount
             ])
     }
 }
@@ -111,6 +116,7 @@ extension Merchant {
             merchants.string("address")
             merchants.string("latitude")
             merchants.string("longitude")
+            merchants.int("visitors_count", optional: true)
         }
     }
     
