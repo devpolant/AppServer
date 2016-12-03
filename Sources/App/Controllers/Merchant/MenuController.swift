@@ -44,6 +44,8 @@ class MenuController: DropletConfigurable {
         
         let categoryGroup = menuGroup.grouped("category")
         
+        categoryGroup.post("list", handler: categoriesList)
+        categoryGroup.post("items", ":category_id", handler: categoryItemsList)
         categoryGroup.post("create", handler: createCategory)
         categoryGroup.post("edit", handler: editCategory)
         categoryGroup.post("delete", handler: deleteCategory)
@@ -53,6 +55,38 @@ class MenuController: DropletConfigurable {
         menuItemsGroup.post("create", handler: createItem)
         menuItemsGroup.post("edit", handler: editItem)
         menuItemsGroup.post("delete", handler: deleteItem)
+    }
+    
+    
+    //MARK: Menu List
+    
+    func categoriesList(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let merchant = try req.merchant() else {
+            throw Abort.custom(status: .badRequest, message: "Merchant required")
+        }
+        var responseNodes = [Node]()
+        
+        for category in try merchant.menuCategories().all() {
+            responseNodes.append(try category.makeNode())
+        }
+        return try JSON(node: ["error": false,
+                               "menu_categories": Node.array(responseNodes)])
+    }
+    
+    func categoryItemsList(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let categoryId = req.parameters["category_id"]?.string,
+            let category = try MenuCategory.find(categoryId) else {
+            throw Abort.custom(status: .badRequest, message: "Category id required")
+        }
+        var responseNodes = [Node]()
+        
+        for menuItem in try category.menuItems().all() {
+            responseNodes.append(try menuItem.makeNode())
+        }
+        return try JSON(node: ["error": false,
+                               "menu_items": Node.array(responseNodes)])
     }
     
     
