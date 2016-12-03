@@ -80,9 +80,8 @@ class OrdersController: DropletConfigurable {
     
     func merchantOrders(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let merchant = try req.merchant() else {
-            throw Abort.badRequest
-        }
+        let merchant = try req.merchant()
+        
         var ordersJSONArray = [Node]()
         
         for order in try merchant.orders().all() {

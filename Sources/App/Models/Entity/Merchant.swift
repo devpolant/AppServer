@@ -181,8 +181,8 @@ extension Merchant: Auth.User {
 
 //MARK: - Request
 extension Request {
-    func merchant() throws -> Merchant? {
-        return try auth.user() as? Merchant
+    func merchant() throws -> Merchant {
+        return try auth.user() as! Merchant
     }
 }
 

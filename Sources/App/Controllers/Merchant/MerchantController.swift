@@ -13,6 +13,11 @@ import Cookies
 import BCrypt
 import HTTP
 
+enum MerchantAuthError: Error {
+    case invalidCredentials
+    case loginExists
+}
+
 class MerchantController: DropletConfigurable {
     
     weak var drop: Droplet?
@@ -75,7 +80,7 @@ class MerchantController: DropletConfigurable {
         }
         
         if let _ = try Merchant.query().filter("login", login).first() {
-            throw Abort.custom(status: .conflict, message: "Merchant already exist")
+            throw MerchantAuthError.loginExists
         }
         
         var merchant = Merchant(login: login,
@@ -105,8 +110,8 @@ class MerchantController: DropletConfigurable {
         let credentials = APIKey(id: login, secret: password)
         try req.auth.login(credentials)
         
-        guard let merchantId = try req.merchant()?.id, var merchant = try Merchant.find(merchantId) else {
-            throw Abort.custom(status: .notFound, message: "Merchant not found")
+        guard let merchantId = try req.merchant().id, var merchant = try Merchant.find(merchantId) else {
+            throw MerchantAuthError.invalidCredentials
         }
         
         merchant.token = self.token(for: merchant)
@@ -123,19 +128,15 @@ class MerchantController: DropletConfigurable {
     
     func showProfile(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let merchant = try req.merchant() else {
-            throw Abort.custom(status: .badRequest, message: "Merchant token required")
-        }
+        let merchant = try req.merchant()
+        
         return try JSON(node: ["error": false,
                                "profile": merchant.publicResponseNode()])
     }
     
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var merchant = try req.merchant() else {
-            throw Abort.badRequest
-        }
-        
+        var merchant = try req.merchant()
         do {
             merchant.token = ""
             try merchant.save()
@@ -153,16 +154,14 @@ class MerchantController: DropletConfigurable {
     
     func edit(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var merchant = try req.merchant() else {
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
-        }
+        var merchant = try req.merchant()
         
         var isChanged = false
         
         if let newLogin = req.data["login"]?.string {
             
             if (try Merchant.query().filter("login", newLogin).first()) != nil {
-                throw Abort.custom(status: .badRequest, message: "Login already exist")
+                throw MerchantAuthError.loginExists
             }
             merchant.login = newLogin
             isChanged = true
@@ -201,9 +200,7 @@ class MerchantController: DropletConfigurable {
     
     func changePassword(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var merchant = try req.merchant() else {
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials")
-        }
+        var merchant = try req.merchant()
         
         guard let oldPassword = req.data["old_password"]?.string,
             let newPassword = req.data["new_password"]?.string else {

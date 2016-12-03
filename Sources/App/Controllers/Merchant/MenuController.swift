@@ -62,9 +62,8 @@ class MenuController: DropletConfigurable {
     
     func categoriesList(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let merchant = try req.merchant() else {
-            throw Abort.custom(status: .badRequest, message: "Merchant required")
-        }
+        let merchant = try req.merchant()
+        
         var responseNodes = [Node]()
         
         for category in try merchant.menuCategories().all() {
@@ -94,10 +93,8 @@ class MenuController: DropletConfigurable {
     
     func createCategory(_ req: Request) throws -> ResponseRepresentable {
         
-        guard let merchant = try req.merchant() else {
-            throw Abort.custom(status: .badRequest, message: "Merchant required")
-        }
-    
+        let merchant = try req.merchant()
+        
         guard let categoryName = req.data["category_name"]?.string else {
             throw Abort.custom(status: .badRequest, message: "Category name required")
         }
@@ -105,7 +102,6 @@ class MenuController: DropletConfigurable {
             throw Abort.custom(status: .badRequest, message: "Category description required")
         }
         let photoUrl = req.data["photo_url"]?.string
-        
         
         var menuCategory = MenuCategory(name: categoryName,
                                         description: description,

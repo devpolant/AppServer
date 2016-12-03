@@ -51,9 +51,7 @@ class VisitorsController: DropletConfigurable {
     
     func setVisitorsCount(_ req: Request) throws -> ResponseRepresentable {
         
-        guard var merchant = try req.merchant() else {
-            throw Abort.custom(status: .badRequest, message: "Merchant required")
-        }
+        var merchant = try req.merchant()
         
         guard let visitorsCount = req.data["visitors_count"]?.int else {
             throw Abort.badRequest
