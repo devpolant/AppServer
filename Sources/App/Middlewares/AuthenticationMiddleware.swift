@@ -35,10 +35,10 @@ final class AuthenticationMiddleware: Middleware {
         
         do {
             return try next.respond(to: request)
-        } catch CustomerController.CustomerAuthError.loginExists {
+        } catch CustomerAuthError.loginExists {
             throw Abort.custom(status: .conflict, message: "Login alredy exists")
             
-        } catch CustomerController.CustomerAuthError.invalidCredentials {
+        } catch CustomerAuthError.invalidCredentials {
             throw Abort.custom(status: .badRequest, message: "Invalid credentials")
         }
     }

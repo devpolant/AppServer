@@ -13,6 +13,11 @@ import Cookies
 import BCrypt
 import HTTP
 
+enum CustomerAuthError: Error {
+    case invalidCredentials
+    case loginExists
+}
+
 class CustomerController: DropletConfigurable {
     
     weak var drop: Droplet?
@@ -29,13 +34,6 @@ class CustomerController: DropletConfigurable {
             return
         }
         setupRoutes()
-    }
-    
-    //MARK: - Errors
-    
-    enum CustomerAuthError: Error {
-        case invalidCredentials
-        case loginExists
     }
     
     
