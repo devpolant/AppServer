@@ -49,6 +49,7 @@ class MerchantController: DropletConfigurable {
         
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
+        protectedGroup.post("profile", handler: showProfile)
         
         let passwordGroup = protectedGroup.grouped("password")
         
@@ -118,6 +119,15 @@ class MerchantController: DropletConfigurable {
         return try JSON(node: ["error": false,
                                "message": "Successfully logged in",
                                "access_token" : merchant.token])
+    }
+    
+    func showProfile(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let merchant = try req.merchant() else {
+            throw Abort.custom(status: .badRequest, message: "Merchant token required")
+        }
+        return try JSON(node: ["error": false,
+                               "profile": merchant.publicResponseNode()])
     }
     
     func logout(_ req: Request) throws -> ResponseRepresentable {

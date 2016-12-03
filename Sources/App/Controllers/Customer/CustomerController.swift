@@ -49,6 +49,7 @@ class CustomerController: DropletConfigurable {
         
         protectedGroup.post("logout", handler: logout)
         protectedGroup.post("edit", handler: edit)
+        protectedGroup.post("profile", handler: showProfile)
         
         let passwordGroup = protectedGroup.grouped("password")
         
@@ -107,22 +108,30 @@ class CustomerController: DropletConfigurable {
                                "access_token" : user.token])
     }
     
+    func showProfile(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let customer = try req.customer() else {
+            throw Abort.custom(status: .badRequest, message: "Customer token required")
+        }
+        return try JSON(node: ["error": false,
+                               "profile": customer.publicResponseNode()])
+    }
+    
     func logout(_ req: Request) throws -> ResponseRepresentable {
         
-        if var user = try req.auth.user() as? Customer {
-            
-            do {
-                user.token = ""
-                try user.save()
-                try req.auth.logout()
-                
-            } catch {
-                print(error)
-            }
-            return try JSON(node: ["error": false,
-                                   "message": "Logout succeded"])
+        guard var user = try req.customer() else {
+            throw Abort.badRequest
         }
-        throw Abort.badRequest
+        do {
+            user.token = ""
+            try user.save()
+            try req.auth.logout()
+            
+        } catch {
+            print(error)
+        }
+        return try JSON(node: ["error": false,
+                               "message": "Logout succeded"])
     }
     
     
