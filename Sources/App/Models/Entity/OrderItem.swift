@@ -44,6 +44,7 @@ final class OrderItem: Model {
     }
 }
 
+
 //MARK: - Preparation
 extension OrderItem {
     
@@ -62,11 +63,33 @@ extension OrderItem {
 }
 
 
+//MARK: - Public Response
+extension OrderItem: PublicResponseRepresentable {
+    
+    func publicResponseNode() throws -> Node {
+        
+        let menuItem = try self.menuItem().get()!
+        
+        return try Node(node: [
+            "_id": id,
+            "order_id": orderId,
+            "menu_item": menuItem.makeNode(),
+            "quantity": quantity,
+            "price": menuItem.price * Double(quantity)
+            ])
+    }
+}
+
+
 //MARK: - DB Relations
 extension OrderItem {
     
     func order() throws -> Parent<Order> {
         return try parent(orderId)
+    }
+    
+    func menuItem() throws -> Parent<MenuItem> {
+        return try parent(menuItemId)
     }
 }
 

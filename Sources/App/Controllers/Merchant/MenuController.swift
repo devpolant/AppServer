@@ -55,6 +55,15 @@ class MenuController: DropletConfigurable {
         menuItemsGroup.post("create", handler: createItem)
         menuItemsGroup.post("edit", handler: editItem)
         menuItemsGroup.post("delete", handler: deleteItem)
+        
+        
+        let customerAuth = AuthMiddlewareFactory.shared.customerAuthMiddleware
+        let infoGroup = drop.grouped("customer")
+            .grouped(customerAuth)
+            .grouped(AuthenticationMiddleware())
+            .grouped("menu")
+        
+        infoGroup.post("items", handler: orderItemsSet)
     }
     
     
@@ -86,6 +95,44 @@ class MenuController: DropletConfigurable {
         }
         return try JSON(node: ["error": false,
                                "menu_items": Node.array(responseNodes)])
+    }
+    
+    
+    //MARK: - Menu Items by array of identifiers
+    
+    func orderItemsSet(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let items = req.data["items"]?.array else {
+            throw Abort.badRequest
+        }
+        
+        var ids = [NodeRepresentable]()
+        for jsonItem in items {
+            
+            guard let object = jsonItem.object else { continue }
+            
+            let menuItemId = object["id"]!.string!
+            ids.append(menuItemId)
+        }
+        
+        var menuItems = [MenuItem]()
+        for id in ids {
+            guard let item = try MenuItem.find(id) else {
+                throw Abort.custom(status: .badRequest,
+                                   message: "Menu item with id=\(id) not found")
+            }
+            menuItems.append(item)
+        }
+        
+//        let menuItems = try MenuItem.query().filter(MenuItem.self, "_id", .in, ids).all()
+        
+        var result = [Node]()
+        for menuItem in menuItems {
+            result.append(try menuItem.makeNode())
+        }
+        
+        return try JSON(node: ["error": false,
+                               "order": Node.array(result)])
     }
     
     

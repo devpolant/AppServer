@@ -89,9 +89,16 @@ extension Order: PublicResponseRepresentable {
     func publicResponseNode() throws -> Node {
         
         var orderItemNodes = [Node]()
+        var totalPrice = 0.0
         
         for item in try orderItems().all() {
-            orderItemNodes.append(try item.makeNode())
+            
+            orderItemNodes.append(try item.publicResponseNode())
+            
+            guard let menuItem = try item.menuItem().get() else {
+                throw Abort.custom(status: .continue, message: "Database connection failed")
+            }
+            totalPrice += menuItem.price * Double(item.quantity)
         }
         
         return try Node(node: [
@@ -101,6 +108,7 @@ extension Order: PublicResponseRepresentable {
             "created_date": createdDate,
             "availability_date": availabilityDate,
             "state": state.rawValue,
+            "total_price": totalPrice,
             "order_items": Node.array(orderItemNodes)
             ])
     }
