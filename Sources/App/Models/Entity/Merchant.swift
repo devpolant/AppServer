@@ -98,6 +98,20 @@ extension Merchant: PublicResponseRepresentable {
             "visitors_count": visitorsCount
             ])
     }
+    
+    func placeResponseNode() throws -> Node {
+        
+        return try Node(node: [
+            "_id": id,
+            "business_name": businessName,
+            "country": country,
+            "city": city,
+            "address": address,
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "visitors_count": visitorsCount
+            ])
+    }
 }
 
 

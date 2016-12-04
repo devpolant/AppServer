@@ -60,7 +60,7 @@ class PlacesController: DropletConfigurable {
         var merchantsJsonArray = [Node]()
         
         for merchant in try Merchant.query().all() {
-            merchantsJsonArray.append(try merchant.publicResponseNode())
+            merchantsJsonArray.append(try merchant.placeResponseNode())
         }
         return try JSON(node: ["error": false,
                                "merchants": Node.array(merchantsJsonArray)])
@@ -82,7 +82,7 @@ class PlacesController: DropletConfigurable {
         }
         
         for merchant in merchants {
-            let node = try merchant.publicResponseNode()
+            let node = try merchant.placeResponseNode()
             merchantsJsonArray.append(node)
         }
         
@@ -98,7 +98,7 @@ class PlacesController: DropletConfigurable {
         }
         
         return try JSON(node: ["error": false,
-                               "merchant" : merchant.publicResponseNode()])
+                               "merchant" : merchant.placeResponseNode()])
     }
     
     func placeMenu(_ req: Request) throws -> ResponseRepresentable {
