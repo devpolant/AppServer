@@ -50,6 +50,7 @@ class PlacesController: DropletConfigurable {
         placesGroup.post("radius", handler: placesInRadius)
         placesGroup.post("info", ":merchant_id", handler: placeInfo)
         placesGroup.post("menu", ":merchant_id", handler: placeMenu)
+        placesGroup.post("items", ":category_id", handler: placeCategoryItemsList)
     }
 
     
@@ -115,6 +116,21 @@ class PlacesController: DropletConfigurable {
         }
         return try JSON(node: ["error": false,
                                "menu_categories": Node.array(responseNodes)])
+    }
+    
+    func placeCategoryItemsList(_ req: Request) throws -> ResponseRepresentable {
+        
+        guard let categoryId = req.parameters["category_id"]?.string,
+            let category = try MenuCategory.find(categoryId) else {
+                throw Abort.custom(status: .badRequest, message: "Category id required")
+        }
+        var responseNodes = [Node]()
+        
+        for menuItem in try category.menuItems().all() {
+            responseNodes.append(try menuItem.makeNode())
+        }
+        return try JSON(node: ["error": false,
+                               "menu_items": Node.array(responseNodes)])
     }
     
 }
