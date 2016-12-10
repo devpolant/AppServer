@@ -85,7 +85,7 @@ class OrdersController: DropletConfigurable {
         var ordersJSONArray = [Node]()
         
         for order in try merchant.orders().all() {
-            ordersJSONArray.append(try order.publicResponseNode())
+            ordersJSONArray.append(try order.merchantResponseNode())
         }
         return try JSON(node: ["error": false,
                                "orders": Node.array(ordersJSONArray)])
@@ -140,7 +140,7 @@ class OrdersController: DropletConfigurable {
         var ordersJSONArray = [Node]()
         
         for order in try customer.orders().all() {
-            ordersJSONArray.append(try order.publicResponseNode())
+            ordersJSONArray.append(try order.customerResponseNode())
         }
         return try JSON(node: ["error": false,
                                "orders": Node.array(ordersJSONArray)])
@@ -189,7 +189,7 @@ class OrdersController: DropletConfigurable {
         }
         return try JSON(node: ["error": false,
                                "message": "Order created",
-                               "order": order.publicResponseNode()])
+                               "order": order.customerResponseNode()])
     }
     
 }

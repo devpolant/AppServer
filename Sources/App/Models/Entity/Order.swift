@@ -112,6 +112,67 @@ extension Order: PublicResponseRepresentable {
             "order_items": Node.array(orderItemNodes)
             ])
     }
+    
+    func merchantResponseNode() throws -> Node {
+        
+        guard let customer = try Customer.find(customerId) else {
+            throw Abort.badRequest
+        }
+        
+        var orderItemNodes = [Node]()
+        var totalPrice = 0.0
+        
+        for item in try orderItems().all() {
+            
+            orderItemNodes.append(try item.publicResponseNode())
+            
+            guard let menuItem = try item.menuItem().get() else {
+                throw Abort.custom(status: .continue, message: "Database connection failed")
+            }
+            totalPrice += menuItem.price * Double(item.quantity)
+        }
+        
+        return try Node(node: [
+            "_id": id,
+            "customer": try customer.infoResponseNode(),
+            "created_date": createdDate,
+            "availability_date": availabilityDate,
+            "state": state.rawValue,
+            "total_price": totalPrice,
+            "order_items": Node.array(orderItemNodes)
+            ])
+    }
+
+    func customerResponseNode() throws -> Node {
+        
+        guard let merchant = try Merchant.find(merchantId) else {
+            throw Abort.badRequest
+        }
+        
+        var orderItemNodes = [Node]()
+        var totalPrice = 0.0
+        
+        for item in try orderItems().all() {
+            
+            orderItemNodes.append(try item.publicResponseNode())
+            
+            guard let menuItem = try item.menuItem().get() else {
+                throw Abort.custom(status: .continue, message: "Database connection failed")
+            }
+            totalPrice += menuItem.price * Double(item.quantity)
+        }
+        
+        return try Node(node: [
+            "_id": id,
+            "merchant": try merchant.placeResponseNode(),
+            "created_date": createdDate,
+            "availability_date": availabilityDate,
+            "state": state.rawValue,
+            "total_price": totalPrice,
+            "order_items": Node.array(orderItemNodes)
+            ])
+    }
+
 }
 
 

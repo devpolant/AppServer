@@ -65,6 +65,15 @@ extension Customer: PublicResponseRepresentable {
             "access_token": token
             ])
     }
+    
+    func infoResponseNode() throws -> Node {
+        
+        return try Node(node: [
+            "_id": id,
+            "name": name,
+            "login": login
+            ])
+    }
 }
 
 
