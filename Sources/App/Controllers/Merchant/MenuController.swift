@@ -79,7 +79,7 @@ class MenuController: DropletConfigurable {
             responseNodes.append(try category.makeNode())
         }
         return try JSON(node: ["error": false,
-                               "menu_categories": Node.array(responseNodes)])
+                                       "menu_categories": Node.array(responseNodes)])
     }
     
     func categoryItemsList(_ req: Request) throws -> ResponseRepresentable {

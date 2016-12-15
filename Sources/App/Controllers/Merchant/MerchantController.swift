@@ -122,8 +122,8 @@ class MerchantController: DropletConfigurable {
         }
         
         return try JSON(node: ["error": false,
-                               "message": "Successfully logged in",
-                               "access_token" : merchant.token])
+                                      "message": "Successfully logged in",
+                                      "access_token" : merchant.token])
     }
     
     func showProfile(_ req: Request) throws -> ResponseRepresentable {

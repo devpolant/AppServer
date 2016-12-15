@@ -35,6 +35,12 @@ final class AuthenticationMiddleware: Middleware {
         
         do {
             return try next.respond(to: request)
+
+//            let response = try next.respond(to: request)
+            
+//            response.headers["Access-Control-Allow-Origin"] = "*"
+            
+//            return response
             
         } catch CustomerAuthError.loginExists {
             throw Abort.custom(status: .conflict, message: "Customer login already exists")

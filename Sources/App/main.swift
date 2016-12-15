@@ -6,6 +6,7 @@ import Cookies
 
 
 let drop = Droplet()
+drop.addConfigurable(middleware: CorsMiddleware(), name: "file")
 
 
 //MARK: - Providers
